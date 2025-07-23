@@ -22,4 +22,4 @@ Perfect for creating in-game hubs, menus, utilities, and modular interfaces with
 Use a raw GitHub link with `loadstring` to require the library into your Roblox game or script executor:
 
 ```lua
-local UILib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jujuuufx/RobloxUILib/main/MainModule.lua"))()
+local UILib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jujuuufx/CustomUILib/main/MainModule.lua"))()
