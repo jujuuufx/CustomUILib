@@ -151,12 +151,15 @@ local function createToggle(parent, default, cb)
             pcall(cb, state)
         end
     )
-    return {Set = function(v)
+    return {
+        Set = function(v)
             state = v
             render()
-        end, Get = function()
+        end,
+        Get = function()
             return state
-        end}
+        end
+    }
 end
 
 local function createDivider(parent)
@@ -177,7 +180,6 @@ function UniUI:CreateWindow(opts)
     local brandImg = opts.BrandImage
     local size = opts.Size
     local toggleKey = opts.ToggleKey or Enum.KeyCode.RightShift
-
     local function computeSize()
         if size then
             return size.Width, size.Height
@@ -188,18 +190,15 @@ function UniUI:CreateWindow(opts)
         local w, h = math.floor(viewport.X * 0.88), math.floor((viewport.Y - insetY) * 0.80)
         return math.max(580, w), math.max(360, h)
     end
-
     local screen = Instance.new("ScreenGui")
     screen.Name = "UniUI"
     screen.ResetOnSpawn = false
     safeParent(screen)
-
     local overlay = Instance.new("Frame", screen)
     overlay.Name = "Overlay"
     overlay.BackgroundTransparency = 1
     overlay.Size = UDim2.new(1, 0, 1, 0)
     overlay.ZIndex = 10000
-
     local outsideToggle = Instance.new("TextButton", overlay)
     outsideToggle.Size = UDim2.new(0, 42, 0, 42)
     outsideToggle.Position = UDim2.new(1, -54, 0, 12)
@@ -208,10 +207,8 @@ function UniUI:CreateWindow(opts)
     outsideToggle.ZIndex = 10200
     applyCorner(outsideToggle, 10)
     applyStroke(outsideToggle, Theme.StrokeSoft, 0.6)
-
     local outsideLabel = createText(outsideToggle, brand, 16, true, Theme.Accent)
     outsideLabel.Size = UDim2.new(1, 0, 1, 0)
-
     local outsideImg = Instance.new("ImageLabel", outsideToggle)
     outsideImg.Size = UDim2.new(0, 18, 0, 18)
     outsideImg.Position = UDim2.new(0.5, -9, 0.5, -9)
@@ -221,7 +218,6 @@ function UniUI:CreateWindow(opts)
     if outsideImg.Visible then
         outsideLabel.Visible = false
     end
-
     local w, h = computeSize()
     local main = Instance.new("Frame", screen)
     main.Size = UDim2.new(0, w, 0, h)
@@ -230,32 +226,26 @@ function UniUI:CreateWindow(opts)
     main.ClipsDescendants = true
     applyCorner(main, 10)
     applyStroke(main, Theme.Stroke, 0.6)
-
     local top = Instance.new("Frame", main)
     top.Size = UDim2.new(1, 0, 0, 52)
     top.BackgroundColor3 = Theme.Top
     applyCorner(top, 10)
-
     local topFix = Instance.new("Frame", top)
     topFix.Size = UDim2.new(1, 0, 0, 14)
     topFix.Position = UDim2.new(0, 0, 1, -14)
     topFix.BackgroundColor3 = Theme.Top
-
     local topLine = Instance.new("Frame", top)
     topLine.Size = UDim2.new(1, 0, 0, 1)
     topLine.Position = UDim2.new(0, 0, 1, 0)
     topLine.BackgroundColor3 = Theme.StrokeSoft
     topLine.BackgroundTransparency = 0.6
-
     local brandWrap = Instance.new("Frame", top)
     brandWrap.BackgroundTransparency = 1
     brandWrap.Size = UDim2.new(0, 40, 1, 0)
     brandWrap.Position = UDim2.new(0, 14, 0, 0)
-
     local brandLabel = createText(brandWrap, brand, 16, true, Theme.Accent)
     brandLabel.Size = UDim2.new(1, 0, 1, 0)
     brandLabel.TextXAlignment = Enum.TextXAlignment.Left
-
     local brandImage = Instance.new("ImageLabel", brandWrap)
     brandImage.Size = UDim2.new(0, 18, 0, 18)
     brandImage.Position = UDim2.new(0, 0, 0.5, -9)
@@ -265,52 +255,40 @@ function UniUI:CreateWindow(opts)
     if brandImage.Visible then
         brandLabel.Visible = false
     end
-
     local titleLabel = createText(top, title, 15, true)
     titleLabel.Size = UDim2.new(0, 260, 0, 18)
     titleLabel.Position = UDim2.new(0, 52, 0, 14)
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-
     local subtitleLabel = createText(top, "| " .. footer, 12, false, Theme.SubText)
     subtitleLabel.Size = UDim2.new(0, 260, 0, 16)
     subtitleLabel.Position = UDim2.new(0, 52, 0, 30)
     subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-
     local controls = Instance.new("Frame", top)
     controls.BackgroundTransparency = 1
     controls.Size = UDim2.new(0, 44, 0, 16)
     controls.Position = UDim2.new(1, -58, 0, 18)
-
     local controlsLayout = Instance.new("UIListLayout", controls)
     controlsLayout.FillDirection = Enum.FillDirection.Horizontal
     controlsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
     controlsLayout.Padding = UDim.new(0, 6)
-
     local minimizeBtn = Instance.new("TextButton", controls)
     minimizeBtn.Size = UDim2.new(0, 14, 0, 14)
     minimizeBtn.BackgroundColor3 = OldButtonTheme.Neutral
     minimizeBtn.Text = ""
     applyCorner(minimizeBtn, 12)
-
     local closeBtn = Instance.new("TextButton", controls)
     closeBtn.Size = UDim2.new(0, 14, 0, 14)
     closeBtn.BackgroundColor3 = OldButtonTheme.Neutral
     closeBtn.Text = ""
     applyCorner(closeBtn, 12)
-
     makeDraggable(main, top)
-
     local minimized = false
     local function toggleMinimize()
         minimized = not minimized
         local cw, ch = main.Size.X.Offset, main.Size.Y.Offset
-        tween(
-            main,
-            {Position = minimized and UDim2.new(0.5, -cw / 2, 1.5, 0) or UDim2.new(0.5, -cw / 2, 0.5, -ch / 2)},
-            0.22
-        )
+        local targetPos = minimized and UDim2.new(0.5, -cw / 2, 1.5, 0) or UDim2.new(0.5, -cw / 2, 0.5, -ch / 2)
+        tween(main, {Position = targetPos}, 0.22)
     end
-
     minimizeBtn.MouseButton1Click:Connect(toggleMinimize)
     closeBtn.MouseButton1Click:Connect(
         function()
@@ -337,35 +315,30 @@ function UniUI:CreateWindow(opts)
             tween(closeBtn, {BackgroundColor3 = OldButtonTheme.Neutral}, 0.12)
         end
     )
-
     if Camera and not size then
         Camera:GetPropertyChangedSignal("ViewportSize"):Connect(
             function()
-                if minimized then
-                    return
-                end
                 local nw, nh = computeSize()
-                tween(main, {Size = UDim2.new(0, nw, 0, nh), Position = UDim2.new(0.5, -nw / 2, 0.5, -nh / 2)}, 0.22)
+                tween(main, {Size = UDim2.new(0, nw, 0, nh)}, 0.22)
+                if not minimized then
+                    tween(main, {Position = UDim2.new(0.5, -nw / 2, 0.5, -nh / 2)}, 0.22)
+                end
             end
         )
     end
-
     local sidebar = Instance.new("Frame", main)
     sidebar.Size = UDim2.new(0, 176, 1, -52)
     sidebar.Position = UDim2.new(0, 0, 0, 52)
     sidebar.BackgroundColor3 = Theme.Side
     applyStroke(sidebar, Theme.StrokeSoft, 0.7)
-
     local nav = Instance.new("ScrollingFrame", sidebar)
     nav.BackgroundTransparency = 1
     nav.Size = UDim2.new(1, 0, 1, -72)
     nav.ScrollBarThickness = 0
-
     local navPad = Instance.new("UIPadding", nav)
     navPad.PaddingTop = UDim.new(0, 10)
     navPad.PaddingLeft = UDim.new(0, 10)
     navPad.PaddingRight = UDim.new(0, 10)
-
     local navLayout = Instance.new("UIListLayout", nav)
     navLayout.Padding = UDim.new(0, 6)
     navLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(
@@ -373,27 +346,24 @@ function UniUI:CreateWindow(opts)
             nav.CanvasSize = UDim2.new(0, 0, 0, navLayout.AbsoluteContentSize.Y + 14)
         end
     )
-
     local profile = Instance.new("Frame", sidebar)
     profile.Size = UDim2.new(1, 0, 0, 72)
     profile.Position = UDim2.new(0, 0, 1, -72)
     profile.BackgroundColor3 = Theme.Card
     applyStroke(profile, Theme.StrokeSoft, 0.7)
-
     local avatar = Instance.new("Frame", profile)
     avatar.Size = UDim2.new(0, 34, 0, 34)
     avatar.Position = UDim2.new(0, 12, 0, 19)
     avatar.BackgroundColor3 = Theme.Card2
     applyCorner(avatar, 17)
     applyStroke(avatar, Theme.StrokeSoft, 0.65)
-
     local avatarImg = Instance.new("ImageLabel", avatar)
     avatarImg.Size = UDim2.new(1, 0, 1, 0)
     avatarImg.ScaleType = Enum.ScaleType.Crop
     applyCorner(avatarImg, 17)
     task.spawn(
         function()
-            local content =
+            local success, content =
                 pcall(
                 Players.GetUserThumbnailAsync,
                 Players,
@@ -401,29 +371,24 @@ function UniUI:CreateWindow(opts)
                 Enum.ThumbnailType.HeadShot,
                 Enum.ThumbnailSize.Size48x48
             )
-            if content then
+            if success then
                 avatarImg.Image = content
             end
         end
     )
-
     local displayName = createText(profile, truncate(LocalPlayer.DisplayName or "User", 18), 10, true)
     displayName.Size = UDim2.new(1, -60, 0, 16)
     displayName.Position = UDim2.new(0, 54, 0, 22)
-
     local username = createText(profile, truncate("@" .. (LocalPlayer.Name or "user"), 20), 9, false, Theme.SubText)
     username.Size = UDim2.new(1, -60, 0, 14)
     username.Position = UDim2.new(0, 54, 0, 38)
-
     local content = Instance.new("Frame", main)
     content.BackgroundTransparency = 1
     content.Size = UDim2.new(1, -176, 1, -52)
     content.Position = UDim2.new(0, 176, 0, 52)
-
     local tabRoot = Instance.new("Frame", content)
     tabRoot.BackgroundTransparency = 1
     tabRoot.Size = UDim2.new(1, 0, 1, 0)
-
     local window = {
         _screen = screen,
         _main = main,
@@ -439,7 +404,6 @@ function UniUI:CreateWindow(opts)
         _keybindListening = false,
         _toggleKey = toggleKey
     }
-
     local function computeSidebarW(w)
         if UserInputService.TouchEnabled then
             if w < 680 then
@@ -451,7 +415,6 @@ function UniUI:CreateWindow(opts)
         end
         return 176
     end
-
     local function applyLayout()
         local cw = main.Size.X.Offset
         local sw = computeSidebarW(cw)
@@ -464,16 +427,8 @@ function UniUI:CreateWindow(opts)
             end
         end
     end
-
     applyLayout()
-    main:GetPropertyChangedSignal("Size"):Connect(
-        function()
-            if not minimized then
-                applyLayout()
-            end
-        end
-    )
-
+    main:GetPropertyChangedSignal("Size"):Connect(applyLayout)
     local function setTab(tab, active)
         if not tab then
             return
@@ -484,15 +439,12 @@ function UniUI:CreateWindow(opts)
         tab._indicator.BackgroundTransparency = active and 0 or 1
         tab._iconTint.ImageColor3 = active and Theme.Accent or Theme.SubText
     end
-
     function window:CreateTab(opts)
         opts = type(opts) == "table" and opts or {Name = opts or "Tab"}
         local name = opts.Name
         local icon = opts.Icon
-
         local tab = {}
         window._tabOrder = window._tabOrder + 1
-
         local btn = Instance.new("TextButton", nav)
         btn.AutoButtonColor = false
         btn.Text = ""
@@ -500,48 +452,40 @@ function UniUI:CreateWindow(opts)
         btn.BackgroundColor3 = Theme.Side
         btn.LayoutOrder = window._tabOrder
         applyCorner(btn, 8)
-
         local indicator = Instance.new("Frame", btn)
         indicator.BackgroundColor3 = Theme.Accent
         indicator.BackgroundTransparency = 1
         indicator.Size = UDim2.new(0, 3, 0, 18)
         indicator.Position = UDim2.new(0, 6, 0.5, -9)
         applyCorner(indicator, 2)
-
         local iconImg = Instance.new("ImageLabel", btn)
         iconImg.BackgroundTransparency = 1
         iconImg.Size = UDim2.new(0, 16, 0, 16)
         iconImg.Position = UDim2.new(0, 18, 0.5, -8)
         iconImg.Image = icon or ""
         iconImg.ImageColor3 = Theme.SubText
-
         local label = createText(btn, truncate(name, 28), 12, false, Theme.SubText)
         label.Size = UDim2.new(1, -52, 1, 0)
         label.Position = UDim2.new(0, 42, 0, 0)
         label.TextTruncate = Enum.TextTruncate.AtEnd
-
         local tabContent = Instance.new("Frame", tabRoot)
         tabContent.BackgroundTransparency = 1
         tabContent.Size = UDim2.new(1, 0, 1, 0)
         tabContent.Visible = false
-
         local pad = Instance.new("UIPadding", tabContent)
         pad.PaddingTop = UDim.new(0, 12)
         pad.PaddingLeft = UDim.new(0, 14)
         pad.PaddingRight = UDim.new(0, 14)
         pad.PaddingBottom = UDim.new(0, 12)
-
         local leftCol = Instance.new("ScrollingFrame", tabContent)
         leftCol.BackgroundTransparency = 1
         leftCol.ScrollBarThickness = 0
         leftCol.Size = UDim2.new(0.58, -8, 1, 0)
-
         local rightCol = Instance.new("ScrollingFrame", tabContent)
         rightCol.BackgroundTransparency = 1
         rightCol.ScrollBarThickness = 0
         rightCol.Size = UDim2.new(0.42, -8, 1, 0)
         rightCol.Position = UDim2.new(0.58, 16, 0, 0)
-
         local function attachLayout(col)
             local layout = Instance.new("UIListLayout", col)
             layout.Padding = UDim.new(0, 10)
@@ -553,7 +497,6 @@ function UniUI:CreateWindow(opts)
         end
         attachLayout(leftCol)
         attachLayout(rightCol)
-
         local function applyColumns(w)
             if w < 720 then
                 leftCol.Size = UDim2.new(1, 0, 0.52, -6)
@@ -566,7 +509,6 @@ function UniUI:CreateWindow(opts)
             end
         end
         applyColumns(main.Size.X.Offset)
-
         btn.MouseButton1Click:Connect(
             function()
                 for _, t in window._tabs do
@@ -590,7 +532,6 @@ function UniUI:CreateWindow(opts)
                 end
             end
         )
-
         tab._button = btn
         tab._indicator = indicator
         tab._label = label
@@ -599,24 +540,19 @@ function UniUI:CreateWindow(opts)
         tab._left = leftCol
         tab._right = rightCol
         tab._applyColumns = applyColumns
-
         local function makePanel(col, pOpts)
             pOpts = pOpts or {}
             local pTitle = pOpts.Title or "Panel"
             local pIcon = pOpts.Icon
             local target = col == "Right" and rightCol or leftCol
-
             local card = Instance.new("Frame", target)
             card.BackgroundColor3 = Theme.Card
             applyCorner(card, 10)
             applyStroke(card, Theme.StrokeSoft, 0.55)
-
             local cardPad = Instance.new("UIPadding", card)
             cardPad.Padding = UDim.new(0, 10)
-
             local cardLayout = Instance.new("UIListLayout", card)
             cardLayout.Padding = UDim.new(0, 8)
-
             local headerRow = createRow(card, 22)
             local headerIcon = Instance.new("ImageLabel", headerRow)
             headerIcon.BackgroundTransparency = 1
@@ -624,14 +560,11 @@ function UniUI:CreateWindow(opts)
             headerIcon.Position = UDim2.new(0, 0, 0.5, -8)
             headerIcon.Image = pIcon or ""
             headerIcon.ImageColor3 = Theme.SubText
-
             local headerText = createText(headerRow, truncate(pTitle, 28), 13, true)
             headerText.Size = UDim2.new(1, -22, 1, 0)
             headerText.Position = UDim2.new(0, 22, 0, 0)
-
             local body = Instance.new("Frame", card)
             body.BackgroundTransparency = 1
-
             local bodyLayout = Instance.new("UIListLayout", body)
             bodyLayout.Padding = UDim.new(0, 8)
             bodyLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(
@@ -640,14 +573,11 @@ function UniUI:CreateWindow(opts)
                     card.Size = UDim2.new(1, 0, 0, 40 + bodyLayout.AbsoluteContentSize.Y)
                 end
             )
-
             local panel = {}
-
             function panel:Divider()
                 local dWrap = createRow(body, 6)
                 createDivider(dWrap)
             end
-
             function panel:Toggle(opts)
                 opts = opts or {}
                 local row = createRow(body, 26)
@@ -664,12 +594,10 @@ function UniUI:CreateWindow(opts)
                 local lbl = createText(row, truncate(opts.Name or "Toggle", 30), 12, false)
                 lbl.Size = UDim2.new(1, -40 - x, 1, 0)
                 lbl.Position = UDim2.new(0, x, 0, 0)
-
                 local tWrap = Instance.new("Frame", row)
                 tWrap.BackgroundTransparency = 1
                 tWrap.Size = UDim2.new(0, 22, 0, 22)
                 tWrap.Position = UDim2.new(1, -22, 0.5, -11)
-
                 return createToggle(
                     tWrap,
                     opts.Default or false,
@@ -677,7 +605,6 @@ function UniUI:CreateWindow(opts)
                         end
                 )
             end
-
             function panel:Label(opts)
                 opts = type(opts) == "string" and {Text = opts} or opts or {}
                 local row = createRow(body, opts.Height or 22)
@@ -693,7 +620,6 @@ function UniUI:CreateWindow(opts)
                 lbl.TextXAlignment = opts.AlignRight and Enum.TextXAlignment.Right or Enum.TextXAlignment.Left
                 return lbl
             end
-
             function panel:Button(opts)
                 opts = opts or {}
                 local row = createRow(body, 28)
@@ -725,7 +651,6 @@ function UniUI:CreateWindow(opts)
                 )
                 return btn
             end
-
             function panel:Slider(opts)
                 opts = opts or {}
                 local min, max, default, step, suffix =
@@ -736,15 +661,12 @@ function UniUI:CreateWindow(opts)
                     opts.Suffix or "%"
                 local cb = opts.Callback or function()
                     end
-
                 local wrap = Instance.new("Frame", body)
                 wrap.BackgroundTransparency = 1
                 wrap.Size = UDim2.new(1, 0, 0, 46)
-
                 local titleRow = createRow(wrap, 18)
                 local lbl = createText(titleRow, opts.Name or "Slider", 12, false)
                 lbl.Size = UDim2.new(0.7, 0, 1, 0)
-
                 local val = Instance.new("TextLabel", titleRow)
                 val.BackgroundTransparency = 1
                 val.Size = UDim2.new(0.3, 0, 1, 0)
@@ -753,27 +675,22 @@ function UniUI:CreateWindow(opts)
                 val.TextColor3 = Theme.SubText
                 val.TextSize = 11
                 val.Font = Enum.Font.Gotham
-
                 local track = Instance.new("Frame", wrap)
                 track.BackgroundColor3 = Theme.Track
                 track.Size = UDim2.new(1, 0, 0, 6)
                 track.Position = UDim2.new(0, 0, 0, 28)
                 applyCorner(track, 3)
-
                 local fill = Instance.new("Frame", track)
                 fill.BackgroundColor3 = Theme.Accent
                 applyCorner(fill, 3)
-
                 local knob = Instance.new("Frame", track)
                 knob.BackgroundColor3 = Theme.White
                 knob.Size = UDim2.new(0, 12, 0, 12)
                 knob.Position = UDim2.new(0, -6, 0.5, -6)
                 applyCorner(knob, 6)
                 applyStroke(knob, Theme.StrokeSoft, 0.55)
-
                 local current = default
                 local dragging
-
                 local function format(v)
                     val.Text = v .. "/" .. max .. suffix
                 end
@@ -787,13 +704,11 @@ function UniUI:CreateWindow(opts)
                     pcall(cb, v)
                 end
                 set(default)
-
                 local function update(x)
                     local rel = x - track.AbsolutePosition.X
                     local pct = math.clamp(rel / track.AbsoluteSize.X, 0, 1)
                     set(min + (max - min) * pct)
                 end
-
                 track.InputBegan:Connect(
                     function(input)
                         if
@@ -822,12 +737,13 @@ function UniUI:CreateWindow(opts)
                         end
                     end
                 )
-
-                return {Set = set, Get = function()
+                return {
+                    Set = set,
+                    Get = function()
                         return current
-                    end}
+                    end
+                }
             end
-
             function panel:Keybind(opts)
                 opts = opts or {}
                 local row = createRow(body, 28)
@@ -844,7 +760,6 @@ function UniUI:CreateWindow(opts)
                 local lbl = createText(row, opts.Name or "Keybind", 12, false)
                 lbl.Size = UDim2.new(1, -130 - x, 1, 0)
                 lbl.Position = UDim2.new(0, x, 0, 0)
-
                 local keyBtn = Instance.new("TextButton", row)
                 keyBtn.AutoButtonColor = false
                 keyBtn.Size = UDim2.new(0, 110, 0, 22)
@@ -856,12 +771,10 @@ function UniUI:CreateWindow(opts)
                 keyBtn.Text = opts.Default and opts.Default.Name or "None"
                 applyCorner(keyBtn, 7)
                 applyStroke(keyBtn, Theme.StrokeSoft, 0.45)
-
                 local current = opts.Default
                 local listening = false
                 local cb = opts.Callback or function()
                     end
-
                 keyBtn.MouseButton1Click:Connect(
                     function()
                         listening = true
@@ -870,7 +783,6 @@ function UniUI:CreateWindow(opts)
                         keyBtn.TextColor3 = Theme.Accent
                     end
                 )
-
                 UserInputService.InputBegan:Connect(
                     function(input)
                         if not listening then
@@ -898,7 +810,6 @@ function UniUI:CreateWindow(opts)
                         pcall(cb, current)
                     end
                 )
-
                 return {
                     Set = function(v)
                         current = v
@@ -912,7 +823,6 @@ function UniUI:CreateWindow(opts)
                     end
                 }
             end
-
             function panel:Dropdown(opts)
                 opts = opts or {}
                 local list = opts.List or {}
@@ -920,13 +830,11 @@ function UniUI:CreateWindow(opts)
                 local cb = opts.Callback or function()
                     end
                 local labelText = opts.Label
-
                 local row = createRow(body, 30)
                 if labelText then
                     local lbl = createText(row, labelText, 12, false)
                     lbl.Size = UDim2.new(0.5, 0, 1, 0)
                 end
-
                 local field = Instance.new("TextButton", row)
                 field.AutoButtonColor = false
                 field.BackgroundColor3 = Theme.ToggleOff
@@ -935,7 +843,6 @@ function UniUI:CreateWindow(opts)
                 field.Text = ""
                 applyCorner(field, 7)
                 applyStroke(field, Theme.StrokeSoft, 0.45)
-
                 local valueLabel = Instance.new("TextLabel", field)
                 valueLabel.BackgroundTransparency = 1
                 valueLabel.Size = UDim2.new(1, -26, 1, 0)
@@ -945,19 +852,16 @@ function UniUI:CreateWindow(opts)
                 valueLabel.TextColor3 = Theme.Text
                 valueLabel.TextSize = 11
                 valueLabel.Font = Enum.Font.Gotham
-
                 local arrow = createText(field, "▾", 12, false, Theme.SubText)
                 arrow.Size = UDim2.new(0, 22, 1, 0)
                 arrow.Position = UDim2.new(1, -22, 0, 0)
                 arrow.TextXAlignment = Enum.TextXAlignment.Center
-
                 local catcher = Instance.new("TextButton", window._overlay)
                 catcher.BackgroundTransparency = 1
                 catcher.Size = UDim2.new(1, 0, 1, 0)
                 catcher.Visible = false
                 catcher.ZIndex = 10005
                 catcher.Text = ""
-
                 local drop = Instance.new("Frame", window._overlay)
                 drop.Visible = false
                 drop.BackgroundColor3 = Theme.Card
@@ -965,15 +869,11 @@ function UniUI:CreateWindow(opts)
                 drop.ZIndex = 10010
                 applyCorner(drop, 7)
                 applyStroke(drop, Theme.StrokeSoft, 0.45)
-
                 local dropLayout = Instance.new("UIListLayout", drop)
                 dropLayout.Padding = UDim.new(0, 4)
-
                 local dropPad = Instance.new("UIPadding", drop)
                 dropPad.Padding = UDim.new(0, 6)
-
                 local expanded = false
-
                 local function place()
                     local pos = field.AbsolutePosition
                     local sz = field.AbsoluteSize
@@ -983,7 +883,6 @@ function UniUI:CreateWindow(opts)
                     drop.Position = UDim2.fromOffset(pos.X, openUp and pos.Y - h - 6 or pos.Y + sz.Y + 6)
                     drop.Size = UDim2.fromOffset(sz.X, h)
                 end
-
                 local function rebuild()
                     for _, ch in drop:GetChildren() do
                         if ch:IsA("TextButton") then
@@ -1029,7 +928,6 @@ function UniUI:CreateWindow(opts)
                     end
                 end
                 rebuild()
-
                 field.MouseButton1Click:Connect(
                     function()
                         expanded = not expanded
@@ -1051,7 +949,6 @@ function UniUI:CreateWindow(opts)
                         end
                     end
                 )
-
                 catcher.MouseButton1Click:Connect(
                     function()
                         expanded = false
@@ -1062,7 +959,6 @@ function UniUI:CreateWindow(opts)
                         drop.Visible = false
                     end
                 )
-
                 task.spawn(
                     function()
                         while expanded do
@@ -1071,30 +967,29 @@ function UniUI:CreateWindow(opts)
                         end
                     end
                 )
-
-                return {Set = function(v)
+                return {
+                    Set = function(v)
                         current = v
                         valueLabel.Text = truncate(tostring(v), 26)
                         rebuild()
-                    end, Update = function(newList)
+                    end,
+                    Update = function(newList)
                         list = newList or {}
                         rebuild()
-                    end, Get = function()
+                    end,
+                    Get = function()
                         return current
-                    end}
+                    end
+                }
             end
-
             return panel
         end
-
         function tab:Panel(pOpts)
             return makePanel(pOpts.Column or "Left", pOpts)
         end
-
         function tab:Section(name)
             return makePanel("Left", {Title = name})
         end
-
         table.insert(window._tabs, tab)
         if #window._tabs == 1 then
             setTab(tab, true)
@@ -1102,23 +997,19 @@ function UniUI:CreateWindow(opts)
         end
         return tab
     end
-
     local notifyHost = Instance.new("Frame", overlay)
     notifyHost.BackgroundTransparency = 1
     notifyHost.Size = UDim2.new(0, 320, 1, -24)
     notifyHost.Position = UDim2.new(1, -332, 0, 12)
     notifyHost.ZIndex = 10100
-
     local notifyLayout = Instance.new("UIListLayout", notifyHost)
     notifyLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
     notifyLayout.Padding = UDim.new(0, 8)
-
     function window:Notify(opts)
         opts = opts or {}
         local nTitle = opts.Title or title
         local nText = opts.Text or ""
         local dur = opts.Duration or 2.5
-
         local toast = Instance.new("Frame", notifyHost)
         toast.BackgroundColor3 = Theme.Card
         toast.Size = UDim2.new(1, 0, 0, 56)
@@ -1127,22 +1018,18 @@ function UniUI:CreateWindow(opts)
         applyStroke(toast, Theme.StrokeSoft, 0.55)
         toast.BackgroundTransparency = 1
         tween(toast, {BackgroundTransparency = 0}, 0.14)
-
         local pad = Instance.new("UIPadding", toast)
         pad.PaddingTop = UDim.new(0, 8)
         pad.PaddingBottom = UDim.new(0, 8)
         pad.PaddingLeft = UDim.new(0, 10)
         pad.PaddingRight = UDim.new(0, 10)
-
         local t1 = createText(toast, nTitle, 12, true)
         t1.Size = UDim2.new(1, 0, 0, 18)
         t1.ZIndex = 10120
-
         local t2 = createText(toast, nText, 11, false, Theme.SubText)
         t2.Size = UDim2.new(1, 0, 0, 16)
         t2.Position = UDim2.new(0, 0, 0, 20)
         t2.ZIndex = 10120
-
         task.delay(
             dur,
             function()
@@ -1154,16 +1041,14 @@ function UniUI:CreateWindow(opts)
             end
         )
     end
-
     function window:Toggle()
         main.Visible = not main.Visible
         if main.Visible and minimized then
             minimized = false
             local cw, ch = main.Size.X.Offset, main.Size.Y.Offset
-            main.Position = UDim2.new(0.5, -cw / 2, 0.5, -ch / 2)
+            tween(main, {Position = UDim2.new(0.5, -cw / 2, 0.5, -ch / 2)}, 0.22)
         end
     end
-
     function window:SetTitle(t)
         titleLabel.Text = tostring(t)
     end
@@ -1192,7 +1077,6 @@ function UniUI:CreateWindow(opts)
     function window:SetToggleKey(k)
         window._toggleKey = k
     end
-
     local settingsTab = window:CreateTab("Settings")
     local panel = settingsTab:Panel({Title = "Settings"})
     panel:Keybind(
@@ -1207,7 +1091,6 @@ function UniUI:CreateWindow(opts)
             end
         }
     )
-
     UserInputService.InputBegan:Connect(
         function(input, gp)
             if gp or window._keybindListening then
@@ -1223,10 +1106,7 @@ function UniUI:CreateWindow(opts)
             end
         end
     )
-
     outsideToggle.MouseButton1Click:Connect(window.Toggle)
-
     return window
 end
-
 return UniUI
