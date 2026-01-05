@@ -203,6 +203,7 @@ function UniUI:CreateWindow(opts)
 	applyStroke(outsideToggle, Theme.StrokeSoft, 0.6)
 	local outsideLabel = createText(outsideToggle, brand, 16, true, Theme.Accent)
 	outsideLabel.Size = UDim2.new(1, 0, 1, 0)
+	outsideLabel.TextXAlignment = Enum.TextXAlignment.Center
 	local outsideImg = Instance.new("ImageLabel", outsideToggle)
 	outsideImg.Size = UDim2.new(0, 18, 0, 18)
 	outsideImg.Position = UDim2.new(0.5, -9, 0.5, -9)
@@ -251,11 +252,11 @@ function UniUI:CreateWindow(opts)
 	end
 	local titleLabel = createText(top, title, 15, true)
 	titleLabel.Size = UDim2.new(0, 260, 0, 18)
-	titleLabel.Position = UDim2.new(0, 52, 0, 14)
+	titleLabel.Position = UDim2.new(0, 60, 0, 14)
 	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 	local subtitleLabel = createText(top, "| " .. footer, 12, false, Theme.SubText)
 	subtitleLabel.Size = UDim2.new(0, 260, 0, 16)
-	subtitleLabel.Position = UDim2.new(0, 52, 0, 30)
+	subtitleLabel.Position = UDim2.new(0, 60, 0, 32)
 	subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 	local controls = Instance.new("Frame", top)
 	controls.BackgroundTransparency = 1
@@ -610,6 +611,7 @@ function UniUI:CreateWindow(opts)
 				btn.TextColor3 = Theme.Text
 				btn.TextSize = 12
 				btn.Font = Enum.Font.Gotham
+				btn.TextXAlignment = Enum.TextXAlignment.Center
 				applyCorner(btn, 7)
 				applyStroke(btn, Theme.StrokeSoft, 0.45)
 				btn.MouseEnter:Connect(
@@ -735,6 +737,7 @@ function UniUI:CreateWindow(opts)
 				keyBtn.TextSize = 11
 				keyBtn.Font = Enum.Font.Gotham
 				keyBtn.Text = opts.Default and opts.Default.Name or "None"
+				keyBtn.TextXAlignment = Enum.TextXAlignment.Center
 				applyCorner(keyBtn, 7)
 				applyStroke(keyBtn, Theme.StrokeSoft, 0.45)
 				local current = opts.Default
