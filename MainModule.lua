@@ -181,8 +181,9 @@ function UniUI:CreateWindow(opts)
 		local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
 		local viewport = Camera.ViewportSize or Vector2.new(1280, 720)
 		local insetY = getInsetY()
-		local w, h = math.floor(viewport.X * 0.88), math.floor((viewport.Y - insetY) * 0.80)
-		return math.max(580, w), math.max(360, h)
+		local w = math.floor(viewport.X * 0.6)
+		local h = math.floor((viewport.Y - insetY) * 0.6)
+		return math.max(450, w), math.max(300, h)
 	end
 	local screen = Instance.new("ScreenGui")
 	screen.Name = "UniUI"
@@ -256,7 +257,7 @@ function UniUI:CreateWindow(opts)
 	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 	local subtitleLabel = createText(top, "| " .. footer, 12, false, Theme.SubText)
 	subtitleLabel.Size = UDim2.new(0, 260, 0, 16)
-	subtitleLabel.Position = UDim2.new(0, 60, 0, 32)
+	subtitleLabel.Position = UDim2.new(0, 60, 0, 30)
 	subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 	local controls = Instance.new("Frame", top)
 	controls.BackgroundTransparency = 1
@@ -310,17 +311,6 @@ function UniUI:CreateWindow(opts)
 			tween(closeBtn, {BackgroundColor3 = OldButtonTheme.Neutral}, 0.12)
 		end
 	)
-	if Camera and not size then
-		Camera:GetPropertyChangedSignal("ViewportSize"):Connect(
-			function()
-				local nw, nh = computeSize()
-				tween(main, {Size = UDim2.new(0, nw, 0, nh)}, 0.22)
-				if not minimized then
-					tween(main, {Position = UDim2.new(0.5, -nw / 2, 0.5, -nh / 2)}, 0.22)
-				end
-			end
-		)
-	end
 	local sidebar = Instance.new("Frame", main)
 	sidebar.Size = UDim2.new(0, 176, 1, -52)
 	sidebar.Position = UDim2.new(0, 0, 0, 52)
@@ -417,6 +407,33 @@ function UniUI:CreateWindow(opts)
 	end
 	applyLayout()
 	main:GetPropertyChangedSignal("Size"):Connect(applyLayout)
+	function window:updateSize()
+		if size then return end
+		if minimized then return end
+		local viewport = Camera.ViewportSize
+		local insetY = getInsetY()
+		local nw = math.max(450, math.floor(viewport.X * 0.6))
+		local maxH = math.floor((viewport.Y - insetY) * 0.6)
+		local minH = 300
+		local tab = window._currentTab
+		if not tab then return end
+		local leftH = tab._left.CanvasSize.Y.Offset + 24
+		local rightH = tab._right.CanvasSize.Y.Offset + 24
+		local contentH
+		local gap = 0
+		if tab._left.Size.X.Scale > 0 and tab._right.Size.X.Scale > 0 and tab._right.Position.Y.Scale == 0 then
+			contentH = math.max(leftH, rightH)
+		else
+			contentH = leftH + rightH
+			if leftH > 0 and rightH > 0 then
+				gap = 12
+			end
+			contentH = contentH + gap
+		end
+		local totalH = 52 + contentH
+		totalH = math.clamp(totalH, minH, maxH)
+		tween(main, {Size = UDim2.new(0, nw, 0, totalH), Position = UDim2.new(0.5, -nw/2, 0.5, -totalH/2)}, 0.22)
+	end
 	local function setTab(tab, active)
 		if not tab then
 			return
@@ -426,6 +443,10 @@ function UniUI:CreateWindow(opts)
 		tab._label.TextColor3 = active and Theme.Text or Theme.SubText
 		tab._indicator.BackgroundTransparency = active and 0 or 1
 		tab._iconTint.ImageColor3 = active and Theme.Accent or Theme.SubText
+		if active then
+			window._currentTab = tab
+			window:updateSize()
+		end
 	end
 	function window:CreateTab(opts)
 		opts = type(opts) == "table" and opts or {Name = opts or "Tab"}
@@ -468,12 +489,12 @@ function UniUI:CreateWindow(opts)
 		local leftCol = Instance.new("ScrollingFrame", tabContent)
 		leftCol.BackgroundTransparency = 1
 		leftCol.ScrollBarThickness = 0
-		leftCol.Size = UDim2.new(0.58, -8, 1, 0)
+		leftCol.Size = UDim2.new(0.5, -8, 1, 0)
 		local rightCol = Instance.new("ScrollingFrame", tabContent)
 		rightCol.BackgroundTransparency = 1
 		rightCol.ScrollBarThickness = 0
-		rightCol.Size = UDim2.new(0.42, -8, 1, 0)
-		rightCol.Position = UDim2.new(0.58, 16, 0, 0)
+		rightCol.Size = UDim2.new(0.5, -8, 1, 0)
+		rightCol.Position = UDim2.new(0.5, 8, 0, 0)
 		local function attachLayout(col)
 			local layout = Instance.new("UIListLayout", col)
 			layout.Padding = UDim.new(0, 10)
@@ -485,15 +506,33 @@ function UniUI:CreateWindow(opts)
 		end
 		attachLayout(leftCol)
 		attachLayout(rightCol)
+		leftCol:GetPropertyChangedSignal("CanvasSize"):Connect(function() window:updateSize() end)
+		rightCol:GetPropertyChangedSignal("CanvasSize"):Connect(function() window:updateSize() end)
 		local function applyColumns(w)
-			if w < 720 then
-				leftCol.Size = UDim2.new(1, 0, 0.52, -6)
-				rightCol.Size = UDim2.new(1, 0, 0.48, -6)
-				rightCol.Position = UDim2.new(0, 0, 0.52, 12)
+			local leftHeight = leftCol.CanvasSize.Y.Offset
+			local rightHeight = rightCol.CanvasSize.Y.Offset
+			local leftEmpty = leftHeight <= 10
+			local rightEmpty = rightHeight <= 10
+			if leftEmpty and rightEmpty then
+				leftCol.Size = UDim2.new(1, 0, 1, 0)
+				rightCol.Size = UDim2.new(0, 0, 1, 0)
+			elseif leftEmpty then
+				leftCol.Size = UDim2.new(0, 0, 1, 0)
+				rightCol.Size = UDim2.new(1, 0, 1, 0)
+				rightCol.Position = UDim2.new(0, 0, 0, 0)
+			elseif rightEmpty then
+				leftCol.Size = UDim2.new(1, 0, 1, 0)
+				rightCol.Size = UDim2.new(0, 0, 1, 0)
 			else
-				leftCol.Size = UDim2.new(0.58, -8, 1, 0)
-				rightCol.Size = UDim2.new(0.42, -8, 1, 0)
-				rightCol.Position = UDim2.new(0.58, 16, 0, 0)
+				if w < 720 then
+					leftCol.Size = UDim2.new(1, 0, 0.52, -6)
+					rightCol.Size = UDim2.new(1, 0, 0.48, -6)
+					rightCol.Position = UDim2.new(0, 0, 0.52, 12)
+				else
+					leftCol.Size = UDim2.new(0.5, -8, 1, 0)
+					rightCol.Size = UDim2.new(0.5, -8, 1, 0)
+					rightCol.Position = UDim2.new(0.5, 8, 0, 0)
+				end
 			end
 		end
 		applyColumns(main.Size.X.Offset)
@@ -503,7 +542,6 @@ function UniUI:CreateWindow(opts)
 					setTab(t, false)
 				end
 				setTab(tab, true)
-				window._currentTab = tab
 			end
 		)
 		btn.MouseEnter:Connect(
@@ -952,7 +990,6 @@ function UniUI:CreateWindow(opts)
 		table.insert(window._tabs, tab)
 		if #window._tabs == 1 then
 			setTab(tab, true)
-			window._currentTab = tab
 		end
 		return tab
 	end
@@ -1035,6 +1072,9 @@ function UniUI:CreateWindow(opts)
 	end
 	function window:SetToggleKey(k)
 		window._toggleKey = k
+	end
+	if Camera and not size then
+		Camera:GetPropertyChangedSignal("ViewportSize"):Connect(window.updateSize)
 	end
 	local settingsTab = window:CreateTab("Settings")
 	local panel = settingsTab:Panel({Title = "Settings"})
