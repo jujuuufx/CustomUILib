@@ -1,4 +1,4 @@
--- Sev.cc UI Library (Buster)
+-- [Sev.cc] UI Library (Buster)
 -- Layout-focused rebuild to match the provided screenshot
 local Buster = {}
 local TweenService = game:GetService("TweenService")
@@ -34,7 +34,6 @@ local Theme = {
     NeutralButtonHover = Color3.fromRGB(100, 100, 100),
     CloseButtonHover = Color3.fromRGB(200, 50, 60),
 }
-
 local Themes = {
     Dark = Theme,
     Light = {
@@ -56,9 +55,7 @@ local Themes = {
         CloseButtonHover = Color3.fromRGB(200, 50, 60),
     },
 }
-
 -- OldUI button colors (from oldui.lua default theme) now integrated into Theme
-
 local function tween(instance, properties, duration)
     duration = duration or 0.18
     local t = TweenService:Create(instance, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), properties)
@@ -75,7 +72,7 @@ local function applyStroke(instance, colorKey, transparency)
     local s = Instance.new("UIStroke")
     s.Thickness = 1
     s.Transparency = transparency or 0.55
-    s.Color = Themes.Dark[colorKey]  -- Initial set
+    s.Color = Themes.Dark[colorKey] -- Initial set
     s.Parent = instance
     return s
 end
@@ -206,6 +203,7 @@ function Buster:CreateWindow(options)
     local footerText = options.Footer or subtitleText
     local brandText = options.BrandText or "S"
     local brandImage = options.BrandImage
+    local brandImageSize = options.BrandImageSize or 18
     local forcedSize = options.Size
     local enableGroups = options.Groups == true
     local defaultToggleKey = options.ToggleKey or Enum.KeyCode.RightShift
@@ -242,13 +240,15 @@ function Buster:CreateWindow(options)
     overlay.ZIndex = 10_000
     overlay.Visible = true
     overlay.Parent = screen
-    -- Outside toggle button (always available)
+    -- Outside toggle button (always available) - Removed as per user request
+    --[[
+    local outsideSize = brandImageSize + 24
     local outsideToggle = Instance.new("TextButton")
     outsideToggle.Name = "OutsideToggle"
     outsideToggle.AutoButtonColor = false
     outsideToggle.BorderSizePixel = 0
-    outsideToggle.Size = UDim2.new(0, 42, 0, 42)
-    outsideToggle.Position = UDim2.new(1, -54, 0, 12)
+    outsideToggle.Size = UDim2.new(0, outsideSize, 0, outsideSize)
+    outsideToggle.Position = UDim2.new(1, -outsideSize - 12, 0, 12)
     outsideToggle.BackgroundColor3 = Theme.Top
     outsideToggle.Text = ""
     outsideToggle.ZIndex = 10_200
@@ -269,8 +269,8 @@ function Buster:CreateWindow(options)
     local outsideImg = Instance.new("ImageLabel")
     outsideImg.Name = "OutsideImage"
     outsideImg.BackgroundTransparency = 1
-    outsideImg.Size = UDim2.new(0, 18, 0, 18)
-    outsideImg.Position = UDim2.new(0.5, -9, 0.5, -9)
+    outsideImg.Size = UDim2.new(0, brandImageSize, 0, brandImageSize)
+    outsideImg.Position = UDim2.new(0.5, -brandImageSize / 2, 0.5, -brandImageSize / 2)
     outsideImg.Image = brandImage or ""
     outsideImg.ImageColor3 = Theme.Accent
     outsideImg.Visible = brandImage ~= nil and brandImage ~= ""
@@ -279,6 +279,8 @@ function Buster:CreateWindow(options)
     if outsideImg.Visible then
         outsideText.Visible = false
     end
+    makeDraggable(outsideToggle)
+    --]]
     local main = Instance.new("Frame")
     main.Name = "Main"
     local startW, startH = computeWindowSize()
@@ -290,20 +292,20 @@ function Buster:CreateWindow(options)
     main.Parent = screen
     applyCorner(main, 10)
     applyStroke(main, "Stroke", 0.6)
-    -- Add resize handle
+    -- Add resize handle - Made bigger and more noticeable
     local resizeHandle = Instance.new("Frame")
     resizeHandle.Name = "ResizeHandle"
     resizeHandle.BackgroundTransparency = 1
-    resizeHandle.Size = UDim2.new(0, 60, 0, 60)
-    resizeHandle.Position = UDim2.new(1, -20, 1, -20)
+    resizeHandle.Size = UDim2.new(0, 30, 0, 30)
+    resizeHandle.Position = UDim2.new(1, -30, 1, -30)
     resizeHandle.Parent = main
-    -- Add grip visuals (three diagonal lines)
-    for i = 0, 2 do
+    -- Add grip visuals (five diagonal lines, thicker)
+    for i = 0, 4 do
         local line = Instance.new("Frame")
-        line.BackgroundColor3 = Theme.SubText
+        line.BackgroundColor3 = Theme.Accent -- Changed to Accent for better visibility
         line.BorderSizePixel = 0
-        line.Size = UDim2.new(0, 8 - i * 2, 0, 1)
-        line.Position = UDim2.new(1, -12 + i * 4, 1, -4 - i * 4)
+        line.Size = UDim2.new(0, 12 - i * 2, 0, 2) -- Thicker lines
+        line.Position = UDim2.new(1, -18 + i * 4, 1, -6 - i * 4)
         line.Rotation = 45
         line.Parent = resizeHandle
     end
@@ -354,10 +356,11 @@ function Buster:CreateWindow(options)
     topLine.BorderSizePixel = 0
     topLine.Parent = top
     -- Small brand at left
+    local brandWrapWidth = brandImageSize + 22
     local brandWrap = Instance.new("Frame")
     brandWrap.BackgroundTransparency = 1
     brandWrap.BorderSizePixel = 0
-    brandWrap.Size = UDim2.new(0, 40, 1, 0)
+    brandWrap.Size = UDim2.new(0, brandWrapWidth, 1, 0)
     brandWrap.Position = UDim2.new(0, 14, 0, 0)
     brandWrap.Parent = top
     local brand = Instance.new("TextLabel")
@@ -374,8 +377,8 @@ function Buster:CreateWindow(options)
     local brandImg = Instance.new("ImageLabel")
     brandImg.Name = "BrandImage"
     brandImg.BackgroundTransparency = 1
-    brandImg.Size = UDim2.new(0, 18, 0, 18)
-    brandImg.Position = UDim2.new(0, 0, 0.5, -9)
+    brandImg.Size = UDim2.new(0, brandImageSize, 0, brandImageSize)
+    brandImg.Position = UDim2.new(0, 0, 0.5, -brandImageSize / 2)
     brandImg.Image = brandImage or ""
     brandImg.ImageColor3 = Theme.Accent
     brandImg.Visible = brandImage ~= nil and brandImage ~= ""
@@ -386,7 +389,7 @@ function Buster:CreateWindow(options)
     local title = Instance.new("TextLabel")
     title.BackgroundTransparency = 1
     title.Size = UDim2.new(0, 260, 0, 18)
-    title.Position = UDim2.new(0, 52, 0, 14)
+    title.Position = UDim2.new(0, brandWrapWidth + 12, 0, 14)
     title.Text = titleText
     title.TextColor3 = Theme.Text
     title.TextSize = 15
@@ -396,7 +399,7 @@ function Buster:CreateWindow(options)
     local subtitle = Instance.new("TextLabel")
     subtitle.BackgroundTransparency = 1
     subtitle.Size = UDim2.new(0, 260, 0, 16)
-    subtitle.Position = UDim2.new(0, 52, 0, 30)
+    subtitle.Position = UDim2.new(0, brandWrapWidth + 12, 0, 30)
     subtitle.Text = "| " .. footerText
     subtitle.TextColor3 = Theme.SubText
     subtitle.TextSize = 12
@@ -436,7 +439,6 @@ function Buster:CreateWindow(options)
     closeBtn.Parent = controls
     applyCorner(closeBtn, 12)
     makeDraggable(main, top)
-    makeDraggable(outsideToggle)  -- Added draggability to outside toggle
     -- Minimize / Close behavior
     local minimized = false
     local function centerTo(w, h)
@@ -1378,17 +1380,17 @@ function Buster:CreateWindow(options)
         window._brandTextLabel.Text = tostring(text)
         window._brandTextLabel.Visible = true
         window._brandImageLabel.Visible = false
-        outsideText.Text = tostring(text)
-        outsideText.Visible = true
-        outsideImg.Visible = false
+        -- outsideText.Text = tostring(text)
+        -- outsideText.Visible = true
+        -- outsideImg.Visible = false
     end
     function window:SetBrandImage(image)
         window._brandImageLabel.Image = tostring(image or "")
         window._brandImageLabel.Visible = window._brandImageLabel.Image ~= ""
         window._brandTextLabel.Visible = not window._brandImageLabel.Visible
-        outsideImg.Image = tostring(image or "")
-        outsideImg.Visible = outsideImg.Image ~= ""
-        outsideText.Visible = not outsideImg.Visible
+        -- outsideImg.Image = tostring(image or "")
+        -- outsideImg.Visible = outsideImg.Image ~= ""
+        -- outsideText.Visible = not outsideImg.Visible
     end
     function window:Destroy()
         screen:Destroy()
@@ -1415,9 +1417,9 @@ function Buster:CreateWindow(options)
         avatar.BackgroundColor3 = Theme.Card2
         displayName.TextColor3 = Theme.Text
         username.TextColor3 = Theme.SubText
-        outsideToggle.BackgroundColor3 = Theme.Top
-        outsideText.TextColor3 = Theme.Accent
-        outsideImg.ImageColor3 = Theme.Accent
+        -- outsideToggle.BackgroundColor3 = Theme.Top
+        -- outsideText.TextColor3 = Theme.Accent
+        -- outsideImg.ImageColor3 = Theme.Accent
         -- Add more if needed, or implement bindColor as planned for comprehensive update
     end
     if enableHome then
@@ -1475,9 +1477,9 @@ function Buster:CreateWindow(options)
         end
     end)
     -- Hook buttons
-    outsideToggle.MouseButton1Click:Connect(function()
-        window:Toggle()
-    end)
+    -- outsideToggle.MouseButton1Click:Connect(function()
+    --     window:Toggle()
+    -- end)
     return window
 end
 function Buster:CreateHomeTab(window, options)
