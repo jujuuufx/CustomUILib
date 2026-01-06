@@ -1,8 +1,6 @@
--- [Sev.cc] UI Library (Buster)
+-- [[Sev.cc]] UI Library (Buster)
 -- Layout-focused rebuild to match the provided screenshot
-
 local Buster = {}
-
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
@@ -10,7 +8,6 @@ local CoreGui = game:GetService("CoreGui")
 local GuiService = game:GetService("GuiService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
-
 local function getInsetY()
     local insetY = 0
     pcall(function()
@@ -19,7 +16,6 @@ local function getInsetY()
     end)
     return insetY
 end
-
 local Theme = {
     Bg = Color3.fromRGB(14, 15, 18),
     Top = Color3.fromRGB(18, 19, 23),
@@ -35,28 +31,24 @@ local Theme = {
     Track = Color3.fromRGB(32, 33, 39),
     White = Color3.fromRGB(255, 255, 255),
 }
-
 -- OldUI button colors (from oldui.lua default theme)
 local OldButtonTheme = {
     Neutral = Color3.fromRGB(80, 80, 80),
     NeutralHover = Color3.fromRGB(100, 100, 100),
     CloseHover = Color3.fromRGB(200, 50, 60),
 }
-
 local function tween(instance, properties, duration)
     duration = duration or 0.18
     local t = TweenService:Create(instance, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), properties)
     t:Play()
     return t
 end
-
 local function applyCorner(instance, radius)
     local c = Instance.new("UICorner")
     c.CornerRadius = UDim.new(0, radius)
     c.Parent = instance
     return c
 end
-
 local function applyStroke(instance, color, transparency)
     local s = Instance.new("UIStroke")
     s.Color = color
@@ -65,7 +57,6 @@ local function applyStroke(instance, color, transparency)
     s.Parent = instance
     return s
 end
-
 local function makeDraggable(frame, handle)
     handle = handle or frame
     local dragging = false
@@ -96,7 +87,6 @@ local function makeDraggable(frame, handle)
         end
     end)
 end
-
 local function truncateWithStars(text, maxChars)
     text = tostring(text or "")
     maxChars = maxChars or 24
@@ -108,7 +98,6 @@ local function truncateWithStars(text, maxChars)
     end
     return string.sub(text, 1, maxChars - 2) .. "**"
 end
-
 local function safeParentGui(gui)
     if syn and syn.protect_gui then
         pcall(function()
@@ -123,7 +112,6 @@ local function safeParentGui(gui)
     end
     gui.Parent = CoreGui
 end
-
 local function createRow(parent, height)
     local row = Instance.new("Frame")
     row.BackgroundTransparency = 1
@@ -132,7 +120,6 @@ local function createRow(parent, height)
     row.Parent = parent
     return row
 end
-
 local function createText(parent, text, size, bold, color)
     local lbl = Instance.new("TextLabel")
     lbl.BackgroundTransparency = 1
@@ -146,7 +133,6 @@ local function createText(parent, text, size, bold, color)
     lbl.Parent = parent
     return lbl
 end
-
 local function createSquareToggle(parent, default, callback)
     local btn = Instance.new("TextButton")
     btn.AutoButtonColor = false
@@ -181,7 +167,6 @@ local function createSquareToggle(parent, default, callback)
         end,
     }
 end
-
 local function createDivider(parent)
     local div = Instance.new("Frame")
     div.BorderSizePixel = 0
@@ -192,7 +177,6 @@ local function createDivider(parent)
     div.Parent = parent
     return div
 end
-
 function Buster:CreateWindow(options)
     options = options or {}
     local titleText = options.Name or "Sev.cc"
@@ -318,8 +302,8 @@ function Buster:CreateWindow(options)
             local delta = input.Position - startInputPos
             local newWidth = startSize.X.Offset + delta.X
             local newHeight = startSize.Y.Offset + delta.Y
-            newWidth = math.max(300, newWidth)  -- Minimum width
-            newHeight = math.max(200, newHeight)  -- Minimum height
+            newWidth = math.max(300, newWidth) -- Minimum width
+            newHeight = math.max(200, newHeight) -- Minimum height
             main.Size = UDim2.new(0, newWidth, 0, newHeight)
         end
     end)
@@ -1386,6 +1370,8 @@ function Buster:CreateWindow(options)
     function window:SetToggleKey(key)
         window._toggleKey = key
     end
+    -- Add homepage automatically
+    Buster:CreateHomeTab(window, options)
     -- Default Settings tab (always present)
     do
         local settingsTab = window:CreateTab("Settings")
@@ -1434,7 +1420,6 @@ function Buster:CreateWindow(options)
     end)
     return window
 end
-
 function Buster:CreateHomeTab(window, options)
     local icon = options.Icon
     local backdrop = options.Backdrop
@@ -1473,8 +1458,6 @@ function Buster:CreateHomeTab(window, options)
     end
     return homeTab
 end
-
 -- Backward compatibility: some scripts may still expect "BronxUI"
 Buster.BronxUI = Buster
-
 return Buster
