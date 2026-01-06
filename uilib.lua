@@ -1435,7 +1435,7 @@ function Buster:CreateWindow(options)
     return window
 end
 
-function Buster:CreateHomeTab(window, options)
+function CreateTab(window, options)
     local icon = options.Icon
     local backdrop = options.Backdrop
     local discordInvite = options.DiscordInvite
@@ -1474,24 +1474,46 @@ function Buster:CreateHomeTab(window, options)
     return homeTab
 end
 
-
-function Buster:CreateWindow(window,options)
-  local settingsTab = window:CreateTab("Settings")
-  local panel = settingsTab:CreatePanel({ Column = "Left", Title = "Settings" })
-  panel:CreateKeybind({
-    Name = "get money ",
-    Default = defaultgetmoneykey,
-    Callback = function(key)
-      if typeof(key) == "EnumItem" then
-        window:SetToggleKey(key)
-        window:Notify({ Title = titleText, Text = "Toggle key set to " .. key.Name, Duration = 1.5 })
-      elseif key == nil then
-        window:SetToggleKey(nil)
-        window:Notify({ Title = titleText, Text = "Toggle key cleared", Duration = 1.5 })
-      end
-    end,
-  })
-end 
+-- create settings tab with options like diffrent stuff and yeah yeah --
+function Buster:CreateSettingsTab(window, options)
+    local settingsTab = window:CreateTab("Settings")
+    local appearancePanel = settingsTab:CreatePanel({Column = "Left", Title = "Appearance"})
+    appearancePanel:CreateDropdown({
+        Name = "Theme",
+        List = {"Light", "Dark", "System"},
+        Default = "System",
+        Callback = function(value)
+            window:Notify({Title = "Theme Changed", Text = "Theme set to " .. value, Duration = 1.5})
+        end,
+    })
+    appearancePanel:CreateToggle({
+        Name = "Enable Animations",
+        Default = true,
+        Callback = function(state)
+            window:Notify({Title = "Animations", Text = state and "Enabled" or "Disabled", Duration = 1.5})
+        end,
+    })
+    local performancePanel = settingsTab:CreatePanel({Column = "Right", Title = "Performance"})
+    performancePanel:CreateSlider({
+        Name = "Max FPS",
+        Min = 30,
+        Max = 240,
+        Default = 60,
+        Increment = 10,
+        Suffix = " FPS",
+        Callback = function(value)
+            window:Notify({Title = "Max FPS", Text = "Set to " .. value .. " FPS", Duration = 1.5})
+        end,
+    })
+    performancePanel:CreateToggle({
+        Name = "Low CPU Mode",
+        Default = false,
+        Callback = function(state)
+            window:Notify({Title = "Low CPU Mode", Text = state and "Enabled" or "Disabled", Duration = 1.5})
+        end,
+    })
+    return settingsTab
+end
 
 -- Backward compatibility: some scripts may still expect "BronxUI"
 Buster.BronxUI = Buster
