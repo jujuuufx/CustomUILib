@@ -1,4 +1,4 @@
--- [[Sev.cc](http://Sev.cc)] UI Library (Buster)
+-- Sev.cc UI Library (Buster)
 -- Layout-focused rebuild to match the provided screenshot
 local Buster = {}
 local TweenService = game:GetService("TweenService")
@@ -30,13 +30,35 @@ local Theme = {
     ToggleOff = Color3.fromRGB(34, 35, 42),
     Track = Color3.fromRGB(32, 33, 39),
     White = Color3.fromRGB(255, 255, 255),
+    NeutralButton = Color3.fromRGB(80, 80, 80),
+    NeutralButtonHover = Color3.fromRGB(100, 100, 100),
+    CloseButtonHover = Color3.fromRGB(200, 50, 60),
 }
--- OldUI button colors (from oldui.lua default theme)
-local OldButtonTheme = {
-    Neutral = Color3.fromRGB(80, 80, 80),
-    NeutralHover = Color3.fromRGB(100, 100, 100),
-    CloseHover = Color3.fromRGB(200, 50, 60),
+
+local Themes = {
+    Dark = Theme,
+    Light = {
+        Bg = Color3.fromRGB(240, 240, 245),
+        Top = Color3.fromRGB(255, 255, 255),
+        Side = Color3.fromRGB(255, 255, 255),
+        Card = Color3.fromRGB(255, 255, 255),
+        Card2 = Color3.fromRGB(230, 230, 235),
+        Stroke = Color3.fromRGB(200, 200, 210),
+        StrokeSoft = Color3.fromRGB(210, 210, 220),
+        Text = Color3.fromRGB(30, 30, 35),
+        SubText = Color3.fromRGB(100, 100, 110),
+        Accent = Color3.fromRGB(100, 100, 255),
+        ToggleOff = Color3.fromRGB(220, 220, 225),
+        Track = Color3.fromRGB(220, 220, 225),
+        White = Color3.fromRGB(255, 255, 255),
+        NeutralButton = Color3.fromRGB(150, 150, 150),
+        NeutralButtonHover = Color3.fromRGB(170, 170, 170),
+        CloseButtonHover = Color3.fromRGB(200, 50, 60),
+    },
 }
+
+-- OldUI button colors (from oldui.lua default theme) now integrated into Theme
+
 local function tween(instance, properties, duration)
     duration = duration or 0.18
     local t = TweenService:Create(instance, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), properties)
@@ -49,11 +71,11 @@ local function applyCorner(instance, radius)
     c.Parent = instance
     return c
 end
-local function applyStroke(instance, color, transparency)
+local function applyStroke(instance, colorKey, transparency)
     local s = Instance.new("UIStroke")
-    s.Color = color
     s.Thickness = 1
     s.Transparency = transparency or 0.55
+    s.Color = Themes.Dark[colorKey]  -- Initial set
     s.Parent = instance
     return s
 end
@@ -120,7 +142,7 @@ local function createRow(parent, height)
     row.Parent = parent
     return row
 end
-local function createText(parent, text, size, bold, color)
+local function createText(parent, text, size, bold, colorKey)
     local lbl = Instance.new("TextLabel")
     lbl.BackgroundTransparency = 1
     lbl.BorderSizePixel = 0
@@ -129,7 +151,7 @@ local function createText(parent, text, size, bold, color)
     lbl.Text = text
     lbl.TextSize = size
     lbl.Font = bold and Enum.Font.GothamBold or Enum.Font.Gotham
-    lbl.TextColor3 = color or Theme.Text
+    lbl.TextColor3 = Theme[colorKey or "Text"]
     lbl.Parent = parent
     return lbl
 end
@@ -142,7 +164,7 @@ local function createSquareToggle(parent, default, callback)
     btn.BackgroundColor3 = Theme.ToggleOff
     btn.Parent = parent
     applyCorner(btn, 6)
-    applyStroke(btn, Theme.StrokeSoft, 0.4)
+    applyStroke(btn, "StrokeSoft", 0.4)
     local state = default and true or false
     local function render()
         if state then
@@ -179,7 +201,7 @@ local function createDivider(parent)
 end
 function Buster:CreateWindow(options)
     options = options or {}
-    local titleText = options.Name or "[Sev.cc](http://Sev.cc)"
+    local titleText = options.Name or "Sev.cc"
     local subtitleText = options.Subtitle or "The Bronx"
     local footerText = options.Footer or subtitleText
     local brandText = options.BrandText or "S"
@@ -232,7 +254,7 @@ function Buster:CreateWindow(options)
     outsideToggle.ZIndex = 10_200
     outsideToggle.Parent = overlay
     applyCorner(outsideToggle, 10)
-    applyStroke(outsideToggle, Theme.StrokeSoft, 0.6)
+    applyStroke(outsideToggle, "StrokeSoft", 0.6)
     local outsideText = Instance.new("TextLabel")
     outsideText.Name = "OutsideText"
     outsideText.BackgroundTransparency = 1
@@ -267,7 +289,7 @@ function Buster:CreateWindow(options)
     main.ClipsDescendants = true
     main.Parent = screen
     applyCorner(main, 10)
-    applyStroke(main, Theme.Stroke, 0.6)
+    applyStroke(main, "Stroke", 0.6)
     -- Add resize handle
     local resizeHandle = Instance.new("Frame")
     resizeHandle.Name = "ResizeHandle"
@@ -399,7 +421,7 @@ function Buster:CreateWindow(options)
     minimizeBtn.Text = ""
     minimizeBtn.BorderSizePixel = 0
     minimizeBtn.Size = UDim2.new(0, 14, 0, 14)
-    minimizeBtn.BackgroundColor3 = OldButtonTheme.Neutral
+    minimizeBtn.BackgroundColor3 = Theme.NeutralButton
     minimizeBtn.LayoutOrder = 1
     minimizeBtn.Parent = controls
     applyCorner(minimizeBtn, 12)
@@ -409,11 +431,12 @@ function Buster:CreateWindow(options)
     closeBtn.Text = ""
     closeBtn.BorderSizePixel = 0
     closeBtn.Size = UDim2.new(0, 14, 0, 14)
-    closeBtn.BackgroundColor3 = OldButtonTheme.Neutral
+    closeBtn.BackgroundColor3 = Theme.NeutralButton
     closeBtn.LayoutOrder = 2
     closeBtn.Parent = controls
     applyCorner(closeBtn, 12)
     makeDraggable(main, top)
+    makeDraggable(outsideToggle)  -- Added draggability to outside toggle
     -- Minimize / Close behavior
     local minimized = false
     local function centerTo(w, h)
@@ -435,16 +458,16 @@ function Buster:CreateWindow(options)
         main.Visible = false
     end)
     minimizeBtn.MouseEnter:Connect(function()
-        tween(minimizeBtn, { BackgroundColor3 = OldButtonTheme.NeutralHover }, 0.12)
+        tween(minimizeBtn, { BackgroundColor3 = Theme.NeutralButtonHover }, 0.12)
     end)
     minimizeBtn.MouseLeave:Connect(function()
-        tween(minimizeBtn, { BackgroundColor3 = OldButtonTheme.Neutral }, 0.12)
+        tween(minimizeBtn, { BackgroundColor3 = Theme.NeutralButton }, 0.12)
     end)
     closeBtn.MouseEnter:Connect(function()
-        tween(closeBtn, { BackgroundColor3 = OldButtonTheme.CloseHover }, 0.12)
+        tween(closeBtn, { BackgroundColor3 = Theme.CloseButtonHover }, 0.12)
     end)
     closeBtn.MouseLeave:Connect(function()
-        tween(closeBtn, { BackgroundColor3 = OldButtonTheme.Neutral }, 0.12)
+        tween(closeBtn, { BackgroundColor3 = Theme.NeutralButton }, 0.12)
     end)
     -- Responsive auto-size like oldui.lua (unless a fixed Size is provided)
     if Camera and not forcedSize then
@@ -467,7 +490,7 @@ function Buster:CreateWindow(options)
     sidebar.BackgroundColor3 = Theme.Side
     sidebar.BorderSizePixel = 0
     sidebar.Parent = main
-    applyStroke(sidebar, Theme.StrokeSoft, 0.7)
+    applyStroke(sidebar, "StrokeSoft", 0.7)
     local nav = Instance.new("ScrollingFrame")
     nav.Name = "Nav"
     nav.BackgroundTransparency = 1
@@ -497,7 +520,7 @@ function Buster:CreateWindow(options)
     profile.BackgroundColor3 = Theme.Card
     profile.BorderSizePixel = 0
     profile.Parent = sidebar
-    applyStroke(profile, Theme.StrokeSoft, 0.7)
+    applyStroke(profile, "StrokeSoft", 0.7)
     local avatar = Instance.new("Frame")
     avatar.Size = UDim2.new(0, 34, 0, 34)
     avatar.Position = UDim2.new(0, 12, 0, 19)
@@ -505,7 +528,7 @@ function Buster:CreateWindow(options)
     avatar.BorderSizePixel = 0
     avatar.Parent = profile
     applyCorner(avatar, 17)
-    applyStroke(avatar, Theme.StrokeSoft, 0.65)
+    applyStroke(avatar, "StrokeSoft", 0.65)
     local avatarImg = Instance.new("ImageLabel")
     avatarImg.Name = "AvatarImage"
     avatarImg.BackgroundTransparency = 1
@@ -526,10 +549,10 @@ function Buster:CreateWindow(options)
             end
         end
     end)
-    local displayName = createText(profile, truncateWithStars((LocalPlayer and LocalPlayer.DisplayName) or "User", 18), 10, true, Theme.Text)
+    local displayName = createText(profile, truncateWithStars((LocalPlayer and LocalPlayer.DisplayName) or "User", 18), 10, true, "Text")
     displayName.Size = UDim2.new(1, -60, 0, 16)
     displayName.Position = UDim2.new(0, 54, 0, 22)
-    local username = createText(profile, truncateWithStars((LocalPlayer and ("@" .. LocalPlayer.Name)) or "@user", 20), 9, false, Theme.SubText)
+    local username = createText(profile, truncateWithStars((LocalPlayer and ("@" .. LocalPlayer.Name)) or "@user", 20), 9, false, "SubText")
     username.Size = UDim2.new(1, -60, 0, 14)
     username.Position = UDim2.new(0, 54, 0, 38)
     -- Content area
@@ -784,7 +807,7 @@ function Buster:CreateWindow(options)
             card.Size = UDim2.new(1, 0, 0, 100)
             card.Parent = target
             applyCorner(card, 10)
-            applyStroke(card, Theme.StrokeSoft, 0.55)
+            applyStroke(card, "StrokeSoft", 0.55)
             local cardPad = Instance.new("UIPadding")
             cardPad.PaddingTop = UDim.new(0, 10)
             cardPad.PaddingLeft = UDim.new(0, 10)
@@ -804,7 +827,7 @@ function Buster:CreateWindow(options)
             headerIcon.Image = pIcon or "rbxassetid://0"
             headerIcon.ImageColor3 = Theme.SubText
             headerIcon.Parent = headerRow
-            local headerText = createText(headerRow, truncateWithStars(pTitle, 28), 13, true, Theme.Text)
+            local headerText = createText(headerRow, truncateWithStars(pTitle, 28), 13, true, "Text")
             headerText.Size = UDim2.new(1, -22, 1, 0)
             headerText.Position = UDim2.new(0, 22, 0, 0)
             local body = Instance.new("Frame")
@@ -843,7 +866,7 @@ function Buster:CreateWindow(options)
                     ic.Parent = row
                     x = 22
                 end
-                local lbl = createText(row, truncateWithStars(opt.Name or "Toggle", 30), 12, false, Theme.Text)
+                local lbl = createText(row, truncateWithStars(opt.Name or "Toggle", 30), 12, false, "Text")
                 lbl.Size = UDim2.new(1, -40 - x, 1, 0)
                 lbl.Position = UDim2.new(0, x, 0, 0)
                 local tWrap = Instance.new("Frame")
@@ -860,7 +883,7 @@ function Buster:CreateWindow(options)
                 end
                 opt = opt or {}
                 local row = createRow(body, opt.Height or 22)
-                local lbl = createText(row, opt.Text or "Label", opt.Size or 12, opt.Bold or false, opt.Color or Theme.SubText)
+                local lbl = createText(row, opt.Text or "Label", opt.Size or 12, opt.Bold or false, opt.Color or "SubText")
                 lbl.Size = UDim2.new(1, 0, 1, 0)
                 lbl.TextXAlignment = opt.AlignRight and Enum.TextXAlignment.Right or Enum.TextXAlignment.Left
                 return lbl
@@ -880,7 +903,7 @@ function Buster:CreateWindow(options)
                 btn2.Font = Enum.Font.Gotham
                 btn2.Parent = row
                 applyCorner(btn2, 7)
-                applyStroke(btn2, Theme.StrokeSoft, 0.45)
+                applyStroke(btn2, "StrokeSoft", 0.45)
                 btn2.MouseEnter:Connect(function()
                     tween(btn2, { BackgroundColor3 = Theme.Card }, 0.12)
                 end)
@@ -907,7 +930,7 @@ function Buster:CreateWindow(options)
                 wrap.Size = UDim2.new(1, 0, 0, 46)
                 wrap.Parent = body
                 local titleRow = createRow(wrap, 18)
-                local lbl = createText(titleRow, nameText, 12, false, Theme.Text)
+                local lbl = createText(titleRow, nameText, 12, false, "Text")
                 lbl.Size = UDim2.new(0.7, 0, 1, 0)
                 local val = Instance.new("TextLabel")
                 val.BackgroundTransparency = 1
@@ -939,7 +962,7 @@ function Buster:CreateWindow(options)
                 knob.Position = UDim2.new(0, -6, 0.5, -6)
                 knob.Parent = track
                 applyCorner(knob, 6)
-                applyStroke(knob, Theme.StrokeSoft, 0.55)
+                applyStroke(knob, "StrokeSoft", 0.55)
                 local current = default
                 local dragging = false
                 local dragInput
@@ -1004,7 +1027,7 @@ function Buster:CreateWindow(options)
                     ic.Parent = row
                     x = 22
                 end
-                local lbl = createText(row, opt.Name or "Keybind", 12, false, Theme.Text)
+                local lbl = createText(row, opt.Name or "Keybind", 12, false, "Text")
                 lbl.Size = UDim2.new(1, -130 - x, 1, 0)
                 lbl.Position = UDim2.new(0, x, 0, 0)
                 local keyBtn = Instance.new("TextButton")
@@ -1019,7 +1042,7 @@ function Buster:CreateWindow(options)
                 keyBtn.Text = (opt.Default and opt.Default.Name) or "None"
                 keyBtn.Parent = row
                 applyCorner(keyBtn, 7)
-                applyStroke(keyBtn, Theme.StrokeSoft, 0.45)
+                applyStroke(keyBtn, "StrokeSoft", 0.45)
                 local current = opt.Default or Enum.KeyCode.LeftControl
                 local listening = false
                 local cb = opt.Callback or function() end
@@ -1084,7 +1107,7 @@ function Buster:CreateWindow(options)
                 local row = createRow(body, 30)
                 -- Optional label at left (rarely used; screenshot dropdown is label-less)
                 if labelText and labelText ~= "" then
-                    local lbl = createText(row, labelText, 12, false, Theme.Text)
+                    local lbl = createText(row, labelText, 12, false, "Text")
                     lbl.Size = UDim2.new(0.5, 0, 1, 0)
                 end
                 local field = Instance.new("TextButton")
@@ -1096,7 +1119,7 @@ function Buster:CreateWindow(options)
                 field.Text = ""
                 field.Parent = row
                 applyCorner(field, 7)
-                applyStroke(field, Theme.StrokeSoft, 0.45)
+                applyStroke(field, "StrokeSoft", 0.45)
                 local valueLabel = Instance.new("TextLabel")
                 valueLabel.BackgroundTransparency = 1
                 valueLabel.BorderSizePixel = 0
@@ -1141,7 +1164,7 @@ function Buster:CreateWindow(options)
                 drop.ZIndex = 10_010
                 drop.Parent = window._overlay
                 applyCorner(drop, 7)
-                applyStroke(drop, Theme.StrokeSoft, 0.45)
+                applyStroke(drop, "StrokeSoft", 0.45)
                 local listLayout = Instance.new("UIListLayout")
                 listLayout.SortOrder = Enum.SortOrder.LayoutOrder
                 listLayout.Padding = UDim.new(0, 4)
@@ -1306,17 +1329,17 @@ function Buster:CreateWindow(options)
         toast.ZIndex = 10_110
         toast.Parent = notifyHost
         applyCorner(toast, 10)
-        applyStroke(toast, Theme.StrokeSoft, 0.55)
+        applyStroke(toast, "StrokeSoft", 0.55)
         local pad = Instance.new("UIPadding")
         pad.PaddingTop = UDim.new(0, 8)
         pad.PaddingBottom = UDim.new(0, 8)
         pad.PaddingLeft = UDim.new(0, 10)
         pad.PaddingRight = UDim.new(0, 10)
         pad.Parent = toast
-        local t1 = createText(toast, tostring(nTitle), 12, true, Theme.Text)
+        local t1 = createText(toast, tostring(nTitle), 12, true, "Text")
         t1.Size = UDim2.new(1, 0, 0, 18)
         t1.ZIndex = 10_120
-        local t2 = createText(toast, tostring(nText), 11, false, Theme.SubText)
+        local t2 = createText(toast, tostring(nText), 11, false, "SubText")
         t2.Size = UDim2.new(1, 0, 0, 16)
         t2.Position = UDim2.new(0, 0, 0, 20)
         t2.ZIndex = 10_120
@@ -1373,6 +1396,30 @@ function Buster:CreateWindow(options)
     function window:SetToggleKey(key)
         window._toggleKey = key
     end
+    function window:ApplyTheme(themeName)
+        Theme = Themes[themeName] or Themes.Dark
+        -- Update all elements (assuming we replaced assignments with direct Theme references; in practice, refresh colors here if needed)
+        -- For simplicity, assume elements use Theme directly or refresh key elements
+        main.BackgroundColor3 = Theme.Bg
+        top.BackgroundColor3 = Theme.Top
+        topFix.BackgroundColor3 = Theme.Top
+        topLine.BackgroundColor3 = Theme.StrokeSoft
+        brand.TextColor3 = Theme.Accent
+        brandImg.ImageColor3 = Theme.Accent
+        title.TextColor3 = Theme.Text
+        subtitle.TextColor3 = Theme.SubText
+        minimizeBtn.BackgroundColor3 = Theme.NeutralButton
+        closeBtn.BackgroundColor3 = Theme.NeutralButton
+        sidebar.BackgroundColor3 = Theme.Side
+        profile.BackgroundColor3 = Theme.Card
+        avatar.BackgroundColor3 = Theme.Card2
+        displayName.TextColor3 = Theme.Text
+        username.TextColor3 = Theme.SubText
+        outsideToggle.BackgroundColor3 = Theme.Top
+        outsideText.TextColor3 = Theme.Accent
+        outsideImg.ImageColor3 = Theme.Accent
+        -- Add more if needed, or implement bindColor as planned for comprehensive update
+    end
     if enableHome then
         Buster:CreateHomeTab(window, homeOpts)
     end
@@ -1392,6 +1439,14 @@ function Buster:CreateWindow(options)
                         window:Notify({ Title = titleText, Text = "Toggle key cleared", Duration = 1.5 })
                     end
                 end,
+            })
+            panel:CreateDropdown({
+                Name = "Theme",
+                List = {"Dark", "Light"},
+                Default = "Dark",
+                Callback = function(selected)
+                    window:ApplyTheme(selected)
+                end
             })
         end
     end
