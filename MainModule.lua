@@ -9,11 +9,9 @@ local Camera = workspace.CurrentCamera
 
 local function getInsetY()
     local insetY = 0
-    pcall(
-        function()
-            insetY = GuiService:GetGuiInset().Y
-        end
-    )
+    pcall(function()
+        insetY = GuiService:GetGuiInset().Y
+    end)
     return insetY
 end
 
@@ -63,45 +61,31 @@ end
 local function makeDraggable(frame, handle)
     handle = handle or frame
     local dragging, dragInput, startPos, startInputPos
-    handle.InputBegan:Connect(
-        function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                dragInput = input
-                startInputPos = input.Position
-                startPos = frame.Position
-                input.Changed:Connect(
-                    function()
-                        if input.UserInputState == Enum.UserInputState.End then
-                            dragging = false
-                        end
-                    end
-                )
-            end
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragInput = input
+            startInputPos = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
         end
-    )
-    UserInputService.InputChanged:Connect(
-        function(input)
-            if dragging and input == dragInput then
-                local delta = input.Position - startInputPos
-                frame.Position =
-                    UDim2.new(
-                    startPos.X.Scale,
-                    startPos.X.Offset + delta.X,
-                    startPos.Y.Scale,
-                    startPos.Y.Offset + delta.Y
-                )
-            end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
+            local delta = input.Position - startInputPos
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
-    )
+    end)
 end
 
 local function truncate(text, max)
     text = tostring(text or "")
     max = max or 24
-    if #text <= max then
-        return text
-    end
+    if #text <= max then return text end
     return string.sub(text, 1, max - 2) .. "**"
 end
 
@@ -128,6 +112,7 @@ local function createText(parent, text, size, bold, color)
     lbl.TextSize = size
     lbl.Font = bold and Enum.Font.GothamBold or Enum.Font.Gotham
     lbl.TextColor3 = color or Theme.Text
+    lbl.TextTruncate = Enum.TextTruncate.AtEnd
     return lbl
 end
 
@@ -144,21 +129,14 @@ local function createToggle(parent, default, cb)
         btn.BackgroundColor3 = state and Theme.Accent or Theme.ToggleOff
     end
     render()
-    btn.MouseButton1Click:Connect(
-        function()
-            state = not state
-            render()
-            pcall(cb, state)
-        end
-    )
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        render()
+        pcall(cb, state)
+    end)
     return {
-        Set = function(v)
-            state = v
-            render()
-        end,
-        Get = function()
-            return state
-        end
+        Set = function(v) state = v render() end,
+        Get = function() return state end
     }
 end
 
@@ -182,15 +160,13 @@ function UniUI:CreateWindow(opts)
     local toggleKey = opts.ToggleKey or Enum.KeyCode.RightShift
 
     local function computeSize()
-        if size then
-            return size.Width, size.Height
-        end
+        if size then return size.Width, size.Height end
         local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
         local viewport = Camera.ViewportSize or Vector2.new(1280, 720)
         local insetY = getInsetY()
         local w = math.floor(viewport.X * 0.6)
         local h = math.floor((viewport.Y - insetY) * 0.6)
-        return math.max(450, w), math.max(300, h)
+        return math.max(500, w), math.max(300, h)
     end
 
     local screen = Instance.new("ScreenGui")
@@ -223,9 +199,7 @@ function UniUI:CreateWindow(opts)
     outsideImg.Image = brandImg or ""
     outsideImg.ImageColor3 = Theme.Accent
     outsideImg.Visible = brandImg ~= nil
-    if outsideImg.Visible then
-        outsideLabel.Visible = false
-    end
+    if outsideImg.Visible then outsideLabel.Visible = false end
 
     local w, h = computeSize()
     local main = Instance.new("Frame", screen)
@@ -267,19 +241,19 @@ function UniUI:CreateWindow(opts)
     brandImage.Image = brandImg or ""
     brandImage.ImageColor3 = Theme.Accent
     brandImage.Visible = brandImg ~= nil
-    if brandImage.Visible then
-        brandLabel.Visible = false
-    end
+    if brandImage.Visible then brandLabel.Visible = false end
 
     local titleLabel = createText(top, title, 15, true)
     titleLabel.Size = UDim2.new(0, 260, 0, 18)
     titleLabel.Position = UDim2.new(0, 60, 0, 14)
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.TextTruncate = Enum.TextTruncate.AtEnd
 
     local subtitleLabel = createText(top, "| " .. footer, 12, false, Theme.SubText)
     subtitleLabel.Size = UDim2.new(0, 260, 0, 16)
     subtitleLabel.Position = UDim2.new(0, 60, 0, 30)
     subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    subtitleLabel.TextTruncate = Enum.TextTruncate.AtEnd
 
     local controls = Instance.new("Frame", top)
     controls.BackgroundTransparency = 1
@@ -313,31 +287,22 @@ function UniUI:CreateWindow(opts)
         tween(main, {Position = targetPos}, 0.22)
     end
     minimizeBtn.MouseButton1Click:Connect(toggleMinimize)
-    closeBtn.MouseButton1Click:Connect(
-        function()
-            main.Visible = false
-        end
-    )
-    minimizeBtn.MouseEnter:Connect(
-        function()
-            tween(minimizeBtn, {BackgroundColor3 = OldButtonTheme.NeutralHover}, 0.12)
-        end
-    )
-    minimizeBtn.MouseLeave:Connect(
-        function()
-            tween(minimizeBtn, {BackgroundColor3 = OldButtonTheme.Neutral}, 0.12)
-        end
-    )
-    closeBtn.MouseEnter:Connect(
-        function()
-            tween(closeBtn, {BackgroundColor3 = OldButtonTheme.CloseHover}, 0.12)
-        end
-    )
-    closeBtn.MouseLeave:Connect(
-        function()
-            tween(closeBtn, {BackgroundColor3 = OldButtonTheme.Neutral}, 0.12)
-        end
-    )
+    closeBtn.MouseButton1Click:Connect(function()
+        main.Visible = false
+    end)
+
+    minimizeBtn.MouseEnter:Connect(function()
+        tween(minimizeBtn, {BackgroundColor3 = OldButtonTheme.NeutralHover}, 0.12)
+    end)
+    minimizeBtn.MouseLeave:Connect(function()
+        tween(minimizeBtn, {BackgroundColor3 = OldButtonTheme.Neutral}, 0.12)
+    end)
+    closeBtn.MouseEnter:Connect(function()
+        tween(closeBtn, {BackgroundColor3 = OldButtonTheme.CloseHover}, 0.12)
+    end)
+    closeBtn.MouseLeave:Connect(function()
+        tween(closeBtn, {BackgroundColor3 = OldButtonTheme.Neutral}, 0.12)
+    end)
 
     local sidebar = Instance.new("Frame", main)
     sidebar.Size = UDim2.new(0, 176, 1, -52)
@@ -357,11 +322,9 @@ function UniUI:CreateWindow(opts)
 
     local navLayout = Instance.new("UIListLayout", nav)
     navLayout.Padding = UDim.new(0, 6)
-    navLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(
-        function()
-            nav.CanvasSize = UDim2.new(0, 0, 0, navLayout.AbsoluteContentSize.Y + 14)
-        end
-    )
+    navLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        nav.CanvasSize = UDim2.new(0, 0, 0, navLayout.AbsoluteContentSize.Y + 14)
+    end)
 
     local profile = Instance.new("Frame", sidebar)
     profile.Size = UDim2.new(1, 0, 0, 72)
@@ -380,29 +343,20 @@ function UniUI:CreateWindow(opts)
     avatarImg.Size = UDim2.new(1, 0, 1, 0)
     avatarImg.ScaleType = Enum.ScaleType.Crop
     applyCorner(avatarImg, 17)
-    task.spawn(
-        function()
-            local success, content =
-                pcall(
-                Players.GetUserThumbnailAsync,
-                Players,
-                LocalPlayer.UserId,
-                Enum.ThumbnailType.HeadShot,
-                Enum.ThumbnailSize.Size48x48
-            )
-            if success then
-                avatarImg.Image = content
-            end
-        end
-    )
+    task.spawn(function()
+        local success, content = pcall(Players.GetUserThumbnailAsync, Players, LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+        if success then avatarImg.Image = content end
+    end)
 
     local displayName = createText(profile, truncate(LocalPlayer.DisplayName or "User", 18), 10, true)
     displayName.Size = UDim2.new(1, -60, 0, 16)
     displayName.Position = UDim2.new(0, 54, 0, 22)
+    displayName.TextTruncate = Enum.TextTruncate.AtEnd
 
     local username = createText(profile, truncate("@" .. (LocalPlayer.Name or "user"), 20), 9, false, Theme.SubText)
     username.Size = UDim2.new(1, -60, 0, 14)
     username.Position = UDim2.new(0, 54, 0, 38)
+    username.TextTruncate = Enum.TextTruncate.AtEnd
 
     local content = Instance.new("Frame", main)
     content.BackgroundTransparency = 1
@@ -430,14 +384,8 @@ function UniUI:CreateWindow(opts)
     }
 
     local function computeSidebarW(w)
-        if UserInputService.TouchEnabled then
-            if w < 680 then
-                return 150
-            end
-            if w < 760 then
-                return 160
-            end
-        end
+        if w < 680 then return 150 end
+        if w < 760 then return 160 end
         return 176
     end
 
@@ -448,30 +396,22 @@ function UniUI:CreateWindow(opts)
         content.Size = UDim2.new(1, -sw, 1, -52)
         content.Position = UDim2.new(0, sw, 0, 52)
         for _, t in window._tabs do
-            if t._applyColumns then
-                t._applyColumns(cw)
-            end
+            if t._applyColumns then t._applyColumns(cw) end
         end
     end
     applyLayout()
     main:GetPropertyChangedSignal("Size"):Connect(applyLayout)
 
     function window:updateSize()
-        if size then
-            return
-        end
-        if minimized then
-            return
-        end
+        if size then return end
+        if minimized then return end
         local viewport = Camera.ViewportSize
         local insetY = getInsetY()
-        local nw = math.max(450, math.floor(viewport.X * 0.6))
+        local nw = math.max(500, math.floor(viewport.X * 0.6))
         local maxH = math.floor((viewport.Y - insetY) * 0.6)
         local minH = 300
         local tab = window._currentTab
-        if not tab then
-            return
-        end
+        if not tab then return end
         local leftH = tab._left.CanvasSize.Y.Offset + 24
         local rightH = tab._right.CanvasSize.Y.Offset + 24
         local contentH
@@ -480,20 +420,16 @@ function UniUI:CreateWindow(opts)
             contentH = math.max(leftH, rightH)
         else
             contentH = leftH + rightH
-            if leftH > 0 and rightH > 0 then
-                gap = 12
-            end
+            if leftH > 0 and rightH > 0 then gap = 12 end
             contentH = contentH + gap
         end
         local totalH = 52 + contentH
         totalH = math.clamp(totalH, minH, maxH)
-        tween(main, {Size = UDim2.new(0, nw, 0, totalH), Position = UDim2.new(0.5, -nw / 2, 0.5, -totalH / 2)}, 0.22)
+        tween(main, {Size = UDim2.new(0, nw, 0, totalH), Position = UDim2.new(0.5, -nw/2, 0.5, -totalH/2)}, 0.22)
     end
 
     local function setTab(tab, active)
-        if not tab then
-            return
-        end
+        if not tab then return end
         tab._content.Visible = active
         tween(tab._button, {BackgroundColor3 = active and Theme.Card2 or Theme.Side}, 0.12)
         tab._label.TextColor3 = active and Theme.Text or Theme.SubText
@@ -511,6 +447,7 @@ function UniUI:CreateWindow(opts)
         local icon = opts.Icon
         local tab = {}
         window._tabOrder = window._tabOrder + 1
+
         local btn = Instance.new("TextButton", nav)
         btn.AutoButtonColor = false
         btn.Text = ""
@@ -563,25 +500,15 @@ function UniUI:CreateWindow(opts)
         local function attachLayout(col)
             local layout = Instance.new("UIListLayout", col)
             layout.Padding = UDim.new(0, 10)
-            layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(
-                function()
-                    col.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
-                end
-            )
+            layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                col.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+            end)
         end
         attachLayout(leftCol)
         attachLayout(rightCol)
 
-        leftCol:GetPropertyChangedSignal("CanvasSize"):Connect(
-            function()
-                window:updateSize()
-            end
-        )
-        rightCol:GetPropertyChangedSignal("CanvasSize"):Connect(
-            function()
-                window:updateSize()
-            end
-        )
+        leftCol:GetPropertyChangedSignal("CanvasSize"):Connect(function() window:updateSize() end)
+        rightCol:GetPropertyChangedSignal("CanvasSize"):Connect(function() window:updateSize() end)
 
         local function applyColumns(w)
             local leftHeight = leftCol.CanvasSize.Y.Offset
@@ -599,7 +526,7 @@ function UniUI:CreateWindow(opts)
                 leftCol.Size = UDim2.new(1, 0, 1, 0)
                 rightCol.Size = UDim2.new(0, 0, 1, 0)
             else
-                if w < 720 then
+                if w < 650 then
                     leftCol.Size = UDim2.new(1, 0, 0.52, -6)
                     rightCol.Size = UDim2.new(1, 0, 0.48, -6)
                     rightCol.Position = UDim2.new(0, 0, 0.52, 12)
@@ -612,28 +539,16 @@ function UniUI:CreateWindow(opts)
         end
         applyColumns(main.Size.X.Offset)
 
-        btn.MouseButton1Click:Connect(
-            function()
-                for _, t in window._tabs do
-                    setTab(t, false)
-                end
-                setTab(tab, true)
-            end
-        )
-        btn.MouseEnter:Connect(
-            function()
-                if window._currentTab ~= tab then
-                    tween(btn, {BackgroundColor3 = Theme.Card}, 0.12)
-                end
-            end
-        )
-        btn.MouseLeave:Connect(
-            function()
-                if window._currentTab ~= tab then
-                    tween(btn, {BackgroundColor3 = Theme.Side}, 0.12)
-                end
-            end
-        )
+        btn.MouseButton1Click:Connect(function()
+            for _, t in window._tabs do setTab(t, false) end
+            setTab(tab, true)
+        end)
+        btn.MouseEnter:Connect(function()
+            if window._currentTab ~= tab then tween(btn, {BackgroundColor3 = Theme.Card}, 0.12) end
+        end)
+        btn.MouseLeave:Connect(function()
+            if window._currentTab ~= tab then tween(btn, {BackgroundColor3 = Theme.Side}, 0.12) end
+        end)
 
         tab._button = btn
         tab._indicator = indicator
@@ -649,6 +564,7 @@ function UniUI:CreateWindow(opts)
             local pTitle = pOpts.Title or "Panel"
             local pIcon = pOpts.Icon
             local target = col == "Right" and rightCol or leftCol
+
             local card = Instance.new("Frame", target)
             card.BackgroundColor3 = Theme.Card
             applyCorner(card, 10)
@@ -662,6 +578,7 @@ function UniUI:CreateWindow(opts)
 
             local cardLayout = Instance.new("UIListLayout", card)
             cardLayout.Padding = UDim.new(0, 8)
+
             local headerRow = createRow(card, 22)
 
             local headerIcon = Instance.new("ImageLabel", headerRow)
@@ -674,17 +591,17 @@ function UniUI:CreateWindow(opts)
             local headerText = createText(headerRow, truncate(pTitle, 28), 13, true)
             headerText.Size = UDim2.new(1, -22, 1, 0)
             headerText.Position = UDim2.new(0, 22, 0, 0)
+            headerText.TextTruncate = Enum.TextTruncate.AtEnd
 
             local body = Instance.new("Frame", card)
             body.BackgroundTransparency = 1
+
             local bodyLayout = Instance.new("UIListLayout", body)
             bodyLayout.Padding = UDim.new(0, 8)
-            bodyLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(
-                function()
-                    body.Size = UDim2.new(1, 0, 0, bodyLayout.AbsoluteContentSize.Y)
-                    card.Size = UDim2.new(1, 0, 0, 40 + bodyLayout.AbsoluteContentSize.Y)
-                end
-            )
+            bodyLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                body.Size = UDim2.new(1, 0, 0, bodyLayout.AbsoluteContentSize.Y)
+                card.Size = UDim2.new(1, 0, 0, 40 + bodyLayout.AbsoluteContentSize.Y)
+            end)
 
             local panel = {}
 
@@ -709,31 +626,22 @@ function UniUI:CreateWindow(opts)
                 local lbl = createText(row, truncate(opts.Name or "Toggle", 30), 12, false)
                 lbl.Size = UDim2.new(1, -40 - x, 1, 0)
                 lbl.Position = UDim2.new(0, x, 0, 0)
+                lbl.TextTruncate = Enum.TextTruncate.AtEnd
+
                 local tWrap = Instance.new("Frame", row)
                 tWrap.BackgroundTransparency = 1
                 tWrap.Size = UDim2.new(0, 22, 0, 22)
                 tWrap.Position = UDim2.new(1, -22, 0.5, -11)
-                return createToggle(
-                    tWrap,
-                    opts.Default or false,
-                    opts.Callback or function()
-                        end
-                )
+                return createToggle(tWrap, opts.Default or false, opts.Callback or function() end)
             end
 
             function panel:Label(opts)
                 opts = type(opts) == "string" and {Text = opts} or opts or {}
                 local row = createRow(body, opts.Height or 22)
-                local lbl =
-                    createText(
-                    row,
-                    opts.Text or "Label",
-                    opts.Size or 12,
-                    opts.Bold or false,
-                    opts.Color or Theme.SubText
-                )
+                local lbl = createText(row, opts.Text or "Label", opts.Size or 12, opts.Bold or false, opts.Color or Theme.SubText)
                 lbl.Size = UDim2.new(1, 0, 1, 0)
                 lbl.TextXAlignment = opts.AlignRight and Enum.TextXAlignment.Right or Enum.TextXAlignment.Left
+                lbl.TextTruncate = Enum.TextTruncate.AtEnd
                 return lbl
             end
 
@@ -750,42 +658,34 @@ function UniUI:CreateWindow(opts)
                 btn.TextSize = 12
                 btn.Font = Enum.Font.Gotham
                 btn.TextXAlignment = Enum.TextXAlignment.Center
+                btn.TextTruncate = Enum.TextTruncate.AtEnd
                 applyCorner(btn, 7)
                 applyStroke(btn, Theme.StrokeSoft, 0.45)
-                btn.MouseEnter:Connect(
-                    function()
-                        tween(btn, {BackgroundColor3 = Theme.Card}, 0.12)
-                    end
-                )
-                btn.MouseLeave:Connect(
-                    function()
-                        tween(btn, {BackgroundColor3 = Theme.ToggleOff}, 0.12)
-                    end
-                )
-                btn.MouseButton1Click:Connect(
-                    function()
-                        pcall(opts.Callback)
-                    end
-                )
+                btn.MouseEnter:Connect(function()
+                    tween(btn, {BackgroundColor3 = Theme.Card}, 0.12)
+                end)
+                btn.MouseLeave:Connect(function()
+                    tween(btn, {BackgroundColor3 = Theme.ToggleOff}, 0.12)
+                end)
+                btn.MouseButton1Click:Connect(function()
+                    pcall(opts.Callback)
+                end)
                 return btn
             end
 
             function panel:Slider(opts)
                 opts = opts or {}
-                local min, max, default, step, suffix =
-                    opts.Min or 0,
-                    opts.Max or 100,
-                    opts.Default or 0,
-                    opts.Increment or 1,
-                    opts.Suffix or "%"
-                local cb = opts.Callback or function()
-                    end
+                local min, max, default, step, suffix = opts.Min or 0, opts.Max or 100, opts.Default or 0, opts.Increment or 1, opts.Suffix or "%"
+                local cb = opts.Callback or function() end
                 local wrap = Instance.new("Frame", body)
                 wrap.BackgroundTransparency = 1
                 wrap.Size = UDim2.new(1, 0, 0, 46)
+
                 local titleRow = createRow(wrap, 18)
                 local lbl = createText(titleRow, opts.Name or "Slider", 12, false)
                 lbl.Size = UDim2.new(0.7, 0, 1, 0)
+                lbl.TextTruncate = Enum.TextTruncate.AtEnd
+
                 local val = Instance.new("TextLabel", titleRow)
                 val.BackgroundTransparency = 1
                 val.Size = UDim2.new(0.3, 0, 1, 0)
@@ -794,20 +694,25 @@ function UniUI:CreateWindow(opts)
                 val.TextColor3 = Theme.SubText
                 val.TextSize = 11
                 val.Font = Enum.Font.Gotham
+                val.TextTruncate = Enum.TextTruncate.AtEnd
+
                 local track = Instance.new("Frame", wrap)
                 track.BackgroundColor3 = Theme.Track
                 track.Size = UDim2.new(1, 0, 0, 6)
                 track.Position = UDim2.new(0, 0, 0, 28)
                 applyCorner(track, 3)
+
                 local fill = Instance.new("Frame", track)
                 fill.BackgroundColor3 = Theme.Accent
                 applyCorner(fill, 3)
+
                 local knob = Instance.new("Frame", track)
                 knob.BackgroundColor3 = Theme.White
                 knob.Size = UDim2.new(0, 12, 0, 12)
                 knob.Position = UDim2.new(0, -6, 0.5, -6)
                 applyCorner(knob, 6)
                 applyStroke(knob, Theme.StrokeSoft, 0.55)
+
                 local current = default
                 local dragging
                 local function format(v)
@@ -828,40 +733,21 @@ function UniUI:CreateWindow(opts)
                     local pct = math.clamp(rel / track.AbsoluteSize.X, 0, 1)
                     set(min + (max - min) * pct)
                 end
-                track.InputBegan:Connect(
-                    function(input)
-                        if
-                            input.UserInputType == Enum.UserInputType.MouseButton1 or
-                                input.UserInputType == Enum.UserInputType.Touch
-                         then
-                            dragging = true
-                            update(input.Position.X)
-                        end
+                track.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        dragging = true
+                        update(input.Position.X)
                     end
-                )
-                track.InputEnded:Connect(
-                    function(input)
-                        if
-                            input.UserInputType == Enum.UserInputType.MouseButton1 or
-                                input.UserInputType == Enum.UserInputType.Touch
-                         then
-                            dragging = false
-                        end
+                end)
+                track.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        dragging = false
                     end
-                )
-                UserInputService.InputChanged:Connect(
-                    function(input)
-                        if dragging then
-                            update(input.Position.X)
-                        end
-                    end
-                )
-                return {
-                    Set = set,
-                    Get = function()
-                        return current
-                    end
-                }
+                end)
+                UserInputService.InputChanged:Connect(function(input)
+                    if dragging then update(input.Position.X) end
+                end)
+                return { Set = set, Get = function() return current end }
             end
 
             function panel:Keybind(opts)
@@ -880,6 +766,8 @@ function UniUI:CreateWindow(opts)
                 local lbl = createText(row, opts.Name or "Keybind", 12, false)
                 lbl.Size = UDim2.new(1, -130 - x, 1, 0)
                 lbl.Position = UDim2.new(0, x, 0, 0)
+                lbl.TextTruncate = Enum.TextTruncate.AtEnd
+
                 local keyBtn = Instance.new("TextButton", row)
                 keyBtn.AutoButtonColor = false
                 keyBtn.Size = UDim2.new(0, 110, 0, 22)
@@ -890,58 +778,44 @@ function UniUI:CreateWindow(opts)
                 keyBtn.Font = Enum.Font.Gotham
                 keyBtn.Text = opts.Default and opts.Default.Name or "None"
                 keyBtn.TextXAlignment = Enum.TextXAlignment.Center
+                keyBtn.TextTruncate = Enum.TextTruncate.AtEnd
                 applyCorner(keyBtn, 7)
                 applyStroke(keyBtn, Theme.StrokeSoft, 0.45)
+
                 local current = opts.Default
                 local listening = false
-                local cb = opts.Callback or function()
-                    end
-                keyBtn.MouseButton1Click:Connect(
-                    function()
-                        listening = true
-                        window._keybindListening = true
-                        keyBtn.Text = "Press key"
-                        keyBtn.TextColor3 = Theme.Accent
-                    end
-                )
-                UserInputService.InputBegan:Connect(
-                    function(input)
-                        if not listening then
-                            return
+                local cb = opts.Callback or function() end
+                keyBtn.MouseButton1Click:Connect(function()
+                    listening = true
+                    window._keybindListening = true
+                    keyBtn.Text = "Press key"
+                    keyBtn.TextColor3 = Theme.Accent
+                end)
+                UserInputService.InputBegan:Connect(function(input)
+                    if not listening then return end
+                    listening = false
+                    window._keybindListening = false
+                    keyBtn.TextColor3 = Theme.Text
+                    if input.UserInputType == Enum.UserInputType.Keyboard then
+                        if input.KeyCode == Enum.KeyCode.Backspace then
+                            current = nil
+                            keyBtn.Text = "None"
+                        else
+                            current = input.KeyCode
+                            keyBtn.Text = current.Name
                         end
-                        listening = false
-                        window._keybindListening = false
-                        keyBtn.TextColor3 = Theme.Text
-                        if input.UserInputType == Enum.UserInputType.Keyboard then
-                            if input.KeyCode == Enum.KeyCode.Backspace then
-                                current = nil
-                                keyBtn.Text = "None"
-                            else
-                                current = input.KeyCode
-                                keyBtn.Text = current.Name
-                            end
-                        elseif
-                            input.UserInputType == Enum.UserInputType.MouseButton1 or
-                                input.UserInputType == Enum.UserInputType.MouseButton2
-                         then
-                            current = input.UserInputType
-                            keyBtn.Text =
-                                input.UserInputType == Enum.UserInputType.MouseButton1 and "Mouse1" or "Mouse2"
-                        end
-                        pcall(cb, current)
+                    elseif input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 then
+                        current = input.UserInputType
+                        keyBtn.Text = input.UserInputType == Enum.UserInputType.MouseButton1 and "Mouse1" or "Mouse2"
                     end
-                )
+                    pcall(cb, current)
+                end)
                 return {
                     Set = function(v)
                         current = v
-                        keyBtn.Text =
-                            typeof(v) == "EnumItem" and v.Name or
-                            (v == Enum.UserInputType.MouseButton1 and "Mouse1" or
-                                (v == Enum.UserInputType.MouseButton2 and "Mouse2" or "None"))
+                        keyBtn.Text = typeof(v) == "EnumItem" and v.Name or (v == Enum.UserInputType.MouseButton1 and "Mouse1" or (v == Enum.UserInputType.MouseButton2 and "Mouse2" or "None"))
                     end,
-                    Get = function()
-                        return current
-                    end
+                    Get = function() return current end
                 }
             end
 
@@ -949,14 +823,16 @@ function UniUI:CreateWindow(opts)
                 opts = opts or {}
                 local list = opts.List or {}
                 local current = opts.Default or list[1] or "None"
-                local cb = opts.Callback or function()
-                    end
+                local cb = opts.Callback or function() end
                 local labelText = opts.Label
+
                 local row = createRow(body, 30)
                 if labelText then
                     local lbl = createText(row, labelText, 12, false)
                     lbl.Size = UDim2.new(0.5, 0, 1, 0)
+                    lbl.TextTruncate = Enum.TextTruncate.AtEnd
                 end
+
                 local field = Instance.new("TextButton", row)
                 field.AutoButtonColor = false
                 field.BackgroundColor3 = Theme.ToggleOff
@@ -965,6 +841,7 @@ function UniUI:CreateWindow(opts)
                 field.Text = ""
                 applyCorner(field, 7)
                 applyStroke(field, Theme.StrokeSoft, 0.45)
+
                 local valueLabel = Instance.new("TextLabel", field)
                 valueLabel.BackgroundTransparency = 1
                 valueLabel.Size = UDim2.new(1, -26, 1, 0)
@@ -974,16 +851,20 @@ function UniUI:CreateWindow(opts)
                 valueLabel.TextColor3 = Theme.Text
                 valueLabel.TextSize = 11
                 valueLabel.Font = Enum.Font.Gotham
+                valueLabel.TextTruncate = Enum.TextTruncate.AtEnd
+
                 local arrow = createText(field, "▾", 12, false, Theme.SubText)
                 arrow.Size = UDim2.new(0, 22, 1, 0)
                 arrow.Position = UDim2.new(1, -22, 0, 0)
                 arrow.TextXAlignment = Enum.TextXAlignment.Center
+
                 local catcher = Instance.new("TextButton", window._overlay)
                 catcher.BackgroundTransparency = 1
                 catcher.Size = UDim2.new(1, 0, 1, 0)
                 catcher.Visible = false
                 catcher.ZIndex = 10005
                 catcher.Text = ""
+
                 local drop = Instance.new("Frame", window._overlay)
                 drop.Visible = false
                 drop.BackgroundColor3 = Theme.Card
@@ -991,13 +872,16 @@ function UniUI:CreateWindow(opts)
                 drop.ZIndex = 10010
                 applyCorner(drop, 7)
                 applyStroke(drop, Theme.StrokeSoft, 0.45)
+
                 local dropLayout = Instance.new("UIListLayout", drop)
                 dropLayout.Padding = UDim.new(0, 4)
+
                 local dropPad = Instance.new("UIPadding", drop)
                 dropPad.PaddingTop = UDim.new(0, 6)
                 dropPad.PaddingBottom = UDim.new(0, 6)
                 dropPad.PaddingLeft = UDim.new(0, 6)
                 dropPad.PaddingRight = UDim.new(0, 6)
+
                 local expanded = false
                 local function place()
                     local pos = field.AbsolutePosition
@@ -1008,11 +892,10 @@ function UniUI:CreateWindow(opts)
                     drop.Position = UDim2.fromOffset(pos.X, openUp and pos.Y - h - 6 or pos.Y + sz.Y + 6)
                     drop.Size = UDim2.fromOffset(sz.X, h)
                 end
+
                 local function rebuild()
                     for _, ch in drop:GetChildren() do
-                        if ch:IsA("TextButton") then
-                            ch:Destroy()
-                        end
+                        if ch:IsA("TextButton") then ch:Destroy() end
                     end
                     for i, item in list do
                         local it = Instance.new("TextButton", drop)
@@ -1026,72 +909,57 @@ function UniUI:CreateWindow(opts)
                         it.TextSize = 11
                         it.Font = Enum.Font.Gotham
                         it.ZIndex = 10020
+                        it.TextTruncate = Enum.TextTruncate.AtEnd
                         applyCorner(it, 6)
-                        it.MouseEnter:Connect(
-                            function()
-                                it.BackgroundTransparency = 0
-                            end
-                        )
-                        it.MouseLeave:Connect(
-                            function()
-                                it.BackgroundTransparency = 1
-                            end
-                        )
-                        it.MouseButton1Click:Connect(
-                            function()
-                                current = item
-                                valueLabel.Text = truncate(tostring(current), 26)
-                                expanded = false
-                                arrow.Text = "▾"
-                                catcher.Visible = false
-                                tween(drop, {Size = UDim2.fromOffset(field.AbsoluteSize.X, 0)}, 0.12)
-                                task.wait(0.12)
-                                drop.Visible = false
-                                pcall(cb, current)
-                            end
-                        )
-                    end
-                end
-                rebuild()
-                field.MouseButton1Click:Connect(
-                    function()
-                        expanded = not expanded
-                        arrow.Text = expanded and "▴" or "▾"
-                        catcher.Visible = expanded
-                        drop.Visible = expanded
-                        if expanded then
-                            place()
-                            tween(
-                                drop,
-                                {Size = UDim2.fromOffset(field.AbsoluteSize.X, math.min(#list * 26 + 12, 156))},
-                                0.12
-                            )
-                        end
-                        if not expanded then
+                        it.MouseEnter:Connect(function() it.BackgroundTransparency = 0 end)
+                        it.MouseLeave:Connect(function() it.BackgroundTransparency = 1 end)
+                        it.MouseButton1Click:Connect(function()
+                            current = item
+                            valueLabel.Text = truncate(tostring(current), 26)
+                            expanded = false
+                            arrow.Text = "▾"
+                            catcher.Visible = false
                             tween(drop, {Size = UDim2.fromOffset(field.AbsoluteSize.X, 0)}, 0.12)
                             task.wait(0.12)
                             drop.Visible = false
-                        end
+                            pcall(cb, current)
+                        end)
                     end
-                )
-                catcher.MouseButton1Click:Connect(
-                    function()
-                        expanded = false
-                        arrow.Text = "▾"
-                        catcher.Visible = false
+                end
+                rebuild()
+
+                field.MouseButton1Click:Connect(function()
+                    expanded = not expanded
+                    arrow.Text = expanded and "▴" or "▾"
+                    catcher.Visible = expanded
+                    drop.Visible = expanded
+                    if expanded then
+                        place()
+                        tween(drop, {Size = UDim2.fromOffset(field.AbsoluteSize.X, math.min(#list * 26 + 12, 156))}, 0.12)
+                    end
+                    if not expanded then
                         tween(drop, {Size = UDim2.fromOffset(field.AbsoluteSize.X, 0)}, 0.12)
                         task.wait(0.12)
                         drop.Visible = false
                     end
-                )
-                task.spawn(
-                    function()
-                        while expanded do
-                            place()
-                            task.wait(0.05)
-                        end
+                end)
+
+                catcher.MouseButton1Click:Connect(function()
+                    expanded = false
+                    arrow.Text = "▾"
+                    catcher.Visible = false
+                    tween(drop, {Size = UDim2.fromOffset(field.AbsoluteSize.X, 0)}, 0.12)
+                    task.wait(0.12)
+                    drop.Visible = false
+                end)
+
+                task.spawn(function()
+                    while expanded do
+                        place()
+                        task.wait(0.05)
                     end
-                )
+                end)
+
                 return {
                     Set = function(v)
                         current = v
@@ -1102,11 +970,10 @@ function UniUI:CreateWindow(opts)
                         list = newList or {}
                         rebuild()
                     end,
-                    Get = function()
-                        return current
-                    end
+                    Get = function() return current end
                 }
             end
+
             return panel
         end
 
@@ -1119,9 +986,7 @@ function UniUI:CreateWindow(opts)
         end
 
         table.insert(window._tabs, tab)
-        if #window._tabs == 1 then
-            setTab(tab, true)
-        end
+        if #window._tabs == 1 then setTab(tab, true) end
         return tab
     end
 
@@ -1140,6 +1005,7 @@ function UniUI:CreateWindow(opts)
         local nTitle = opts.Title or title
         local nText = opts.Text or ""
         local dur = opts.Duration or 2.5
+
         local toast = Instance.new("Frame", notifyHost)
         toast.BackgroundColor3 = Theme.Card
         toast.Size = UDim2.new(1, 0, 0, 56)
@@ -1148,28 +1014,31 @@ function UniUI:CreateWindow(opts)
         applyStroke(toast, Theme.StrokeSoft, 0.55)
         toast.BackgroundTransparency = 1
         tween(toast, {BackgroundTransparency = 0}, 0.14)
+
         local pad = Instance.new("UIPadding", toast)
         pad.PaddingTop = UDim.new(0, 8)
         pad.PaddingBottom = UDim.new(0, 8)
         pad.PaddingLeft = UDim.new(0, 10)
         pad.PaddingRight = UDim.new(0, 10)
+
         local t1 = createText(toast, nTitle, 12, true)
         t1.Size = UDim2.new(1, 0, 0, 18)
         t1.ZIndex = 10120
+        t1.TextTruncate = Enum.TextTruncate.AtEnd
+
         local t2 = createText(toast, nText, 11, false, Theme.SubText)
         t2.Size = UDim2.new(1, 0, 0, 16)
         t2.Position = UDim2.new(0, 0, 0, 20)
         t2.ZIndex = 10120
-        task.delay(
-            dur,
-            function()
-                if toast then
-                    tween(toast, {BackgroundTransparency = 1}, 0.14)
-                    task.wait(0.16)
-                    toast:Destroy()
-                end
+        t2.TextTruncate = Enum.TextTruncate.AtEnd
+
+        task.delay(dur, function()
+            if toast then
+                tween(toast, {BackgroundTransparency = 1}, 0.14)
+                task.wait(0.16)
+                toast:Destroy()
             end
-        )
+        end)
     end
 
     function window:Toggle()
@@ -1221,36 +1090,27 @@ function UniUI:CreateWindow(opts)
 
     local settingsTab = window:CreateTab("Settings")
     local panel = settingsTab:Panel({Title = "Settings"})
-    panel:Keybind(
-        {
-            Name = "Toggle UI Key",
-            Default = toggleKey,
-            Callback = function(key)
-                if key then
-                    window:SetToggleKey(key)
-                    window:Notify({Title = title, Text = "Toggle key set to " .. (key.Name or "None"), Duration = 1.5})
-                end
-            end
-        }
-    )
-
-    UserInputService.InputBegan:Connect(
-        function(input, gp)
-            if gp or window._keybindListening then
-                return
-            end
-            local key = window._toggleKey
-            if
-                key and
-                    ((input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == key) or
-                        input.UserInputType == key)
-             then
-                window:Toggle()
+    panel:Keybind({
+        Name = "Toggle UI Key",
+        Default = toggleKey,
+        Callback = function(key)
+            if key then
+                window:SetToggleKey(key)
+                window:Notify({Title = title, Text = "Toggle key set to " .. (key.Name or "None"), Duration = 1.5})
             end
         end
-    )
+    })
+
+    UserInputService.InputBegan:Connect(function(input, gp)
+        if gp or window._keybindListening then return end
+        local key = window._toggleKey
+        if key and ((input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == key) or input.UserInputType == key) then
+            window:Toggle()
+        end
+    end)
 
     outsideToggle.MouseButton1Click:Connect(window.Toggle)
+
     return window
 end
 
