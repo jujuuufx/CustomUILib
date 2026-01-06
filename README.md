@@ -32,7 +32,7 @@ etc.
 **Always load NebulaUI at the TOP of your script**
 
 ``` lua
-local NebulaUI = loadstring(game:HttpGet("YOUR_RAW_URL_HERE"))()
+local NebulaUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/jujuuufx/CustomUILib/refs/heads/main/uilib.lua"))()
 ```
 
 ------------------------------------------------------------------------
