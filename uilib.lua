@@ -1093,7 +1093,7 @@ function Buster:CreateWindow(options)
                 local list = opt.List or {}
                 local current = opt.Default or list[1] or "None"
                 local cb = opt.Callback or function() end
-                local labelText = opt.Label
+                local labelText = opt.Name or opt.Label
                 local row = createRow(body, 30)
                 -- Optional label at left (rarely used; screenshot dropdown is label-less)
                 if labelText and labelText ~= "" then
@@ -1434,6 +1434,46 @@ function Buster:CreateWindow(options)
     end)
     return window
 end
+
+function Buster:CreateHomeTab(window, options)
+    local icon = options.Icon
+    local backdrop = options.Backdrop
+    local discordInvite = options.DiscordInvite
+    local supported = options.SupportedExecutors or {}
+    local unsupported = options.UnsupportedExecutors or {}
+    local changelog = options.Changelog or {}
+    local homeTab = window:CreateTab({Name = "Home", Icon = icon})
+    local content = homeTab._content
+    local bgImage = Instance.new("ImageLabel")
+    bgImage.BackgroundTransparency = 1
+    bgImage.Size = UDim2.new(1, 0, 1, 0)
+    bgImage.Image = "rbxassetid://" .. tostring(backdrop or 0)
+    bgImage.ScaleType = Enum.ScaleType.Fit
+    bgImage.Parent = content
+    bgImage.ZIndex = -1
+    local infoPanel = homeTab:CreatePanel({Column = "Left", Title = "Info"})
+    if discordInvite then
+        infoPanel:CreateButton({Name = "Join Discord", Callback = function()
+            window:Notify({Text = "Discord invite: " .. discordInvite})
+        end})
+    end
+    infoPanel:CreateLabel("Supported Executors:")
+    for _, exec in ipairs(supported) do
+        infoPanel:CreateLabel(exec)
+    end
+    infoPanel:CreateLabel("Unsupported Executors:")
+    for _, exec in ipairs(unsupported) do
+        infoPanel:CreateLabel(exec)
+    end
+    local changePanel = homeTab:CreatePanel({Column = "Right", Title = "Changelog"})
+    for _, entry in ipairs(changelog) do
+        changePanel:CreateLabel(entry.Title .. " - " .. entry.Date)
+        changePanel:CreateLabel(entry.Description)
+        changePanel:Divider()
+    end
+    return homeTab
+end
+
 -- Backward compatibility: some scripts may still expect "BronxUI"
 Buster.BronxUI = Buster
 
