@@ -1,73 +1,177 @@
+# 🌌 NebulaUI v2
 
-# README.md
+*A modern, powerful Roblox exploit UI library*
 
-## UILibrary - A Simple and Nice Roblox UI Library
+NebulaUI is a custom-built Roblox UI library focused on **clean
+visuals**, **smooth animations**, and **real usability**.\
+Designed to replace common libraries like Rayfield, Venyx, CascadeUI,
+etc.
 
-This is a basic UI library for Roblox, written in Lua (Luau). It provides easy-to-use functions to create styled UI elements like frames, buttons, labels, and draggable windows. The library includes simple styling with rounded corners, shadows, and hover effects for a "nice" modern look.
+------------------------------------------------------------------------
 
-### Features
-- **CreateFrame**: Creates a styled frame with rounding and shadow.
-- **CreateButton**: Creates a button with text, hover effect, and callback.
-- **CreateLabel**: Creates a simple text label.
-- **CreateWindow**: Creates a draggable window with a title bar and content area.
+## ✨ Features
 
-The library uses dark-themed colors by default for a clean, professional appearance, but you can customize colors when creating elements.
+-   🎨 Modern dark / glass UI
+-   🪟 Draggable window
+-   📑 Tab system
+-   📦 Sections
+-   🔘 Animated toggles
+-   🎚️ Sliders with fill bar
+-   📂 Dropdowns
+-   ⌨️ Keybind picker
+-   🔔 Notification system
+-   🎨 Live theme editor
+-   🌫️ Blur / acrylic background
+-   💾 Config save & load system
+-   ⚡ Optimized for exploit usage
 
-### Installation
+------------------------------------------------------------------------
 
-1. **Create a ModuleScript**:
-   - In Roblox Studio, create a new ModuleScript (right-click in Explorer > Insert Object > ModuleScript).
-   - Name it `UILibrary`.
-   - Paste the provided Lua code into the script.
-   - Place it in `ReplicatedStorage` (recommended for client-side UI) or `ServerScriptService` if needed.
+## 📥 Loading the Library (IMPORTANT)
 
-2. **Require the Module**:
-   - In your LocalScript (for client-side UI), require the module like this:
-     ```lua
-     local UILibrary = require(game.ReplicatedStorage.UILibrary)  -- Adjust path if placed elsewhere
-     ```
+**Always load NebulaUI at the TOP of your script**
 
-### How to Load and Use
+``` lua
+local NebulaUI = loadstring(game:HttpGet("YOUR_RAW_URL_HERE"))()
+```
 
-This library is designed for client-side use in LocalScripts, as UI elements are typically handled on the client.
+------------------------------------------------------------------------
 
-#### Loading the Library
-- Place a LocalScript in `StarterPlayerScripts` or inside a tool/ GUI.
-- In the LocalScript:
-  ```lua
-  local UILibrary = require(game.ReplicatedStorage.UILibrary)
-  ```
+## 🪟 Creating a Window
 
-#### Usage Examples
+``` lua
+local Window = NebulaUI:CreateWindow({
+    Title = "Nebula Hub",
+    Size = UDim2.new(0, 600, 0, 420),
+    Position = UDim2.new(0.5, -300, 0.5, -210)
+})
+```
 
-1. **Creating a Simple Window with a Button and Label**:
-   ```lua
-   local content, window = UILibrary.CreateWindow("My Window", UDim2.new(0, 300, 0, 200), UDim2.new(0.5, -150, 0.5, -100))
-   
-   local label = UILibrary.CreateLabel(content, "Hello, Roblox!", UDim2.new(1, 0, 0, 30), UDim2.new(0, 0, 0, 10))
-   
-   local button = UILibrary.CreateButton(content, "Click Me", UDim2.new(0, 150, 0, 50), UDim2.new(0.5, -75, 0.5, 0), function()
-       print("Button clicked!")
-       label.Text = "Button was clicked!"
-   end)
-   ```
+------------------------------------------------------------------------
 
-   This creates a draggable window centered on the screen with a label and a button. Clicking the button updates the label and prints to the console.
+## 📑 Creating Tabs
 
-2. **Customizing Styles**:
-   - When creating elements, pass custom parameters:
-     ```lua
-     local frame = UILibrary.CreateFrame(parent, "CustomFrame", UDim2.new(0, 250, 0, 150), UDim2.new(0, 10, 0, 10), Color3.fromRGB(100, 100, 255), Color3.fromRGB(0, 0, 0))
-     ```
+``` lua
+local CombatTab = Window:CreateTab("Combat")
+local VisualTab = Window:CreateTab("Visuals")
+local SettingsTab = Window:CreateTab("Settings")
+```
 
-3. **Adding More Elements**:
-   - You can nest frames or add more buttons/labels inside the content frame returned by `CreateWindow`.
-   - For advanced UI, build upon these basics (e.g., add sliders or textboxes using similar patterns).
+------------------------------------------------------------------------
 
-### Notes
-- This library is client-side only. For server-client communication, use RemoteEvents.
-- Test in Roblox Studio: Run the game and check the PlayerGui for the UI.
-- Customization: Feel free to modify the code for more features like animations (using TweenService) or additional elements.
-- Dependencies: None – uses built-in Roblox instances.
+## 📦 Creating Sections
 
-If you encounter issues, ensure the ModuleScript is accessible from the LocalScript's context. Enjoy building your Roblox UIs! 🚀
+``` lua
+local DefenseSection = CombatTab:CreateSection("Defense")
+```
+
+------------------------------------------------------------------------
+
+## 🔘 Toggle (Animated Switch)
+
+``` lua
+DefenseSection:CreateToggle({
+    Name = "Auto Perfect Block",
+    Default = false,
+    Callback = function(value)
+        print(value)
+    end
+})
+```
+
+------------------------------------------------------------------------
+
+## 🎚️ Slider
+
+``` lua
+MovementSection:CreateSlider({
+    Name = "WalkSpeed",
+    Min = 0,
+    Max = 100,
+    Default = 50,
+    Callback = function(value)
+        print(value)
+    end
+})
+```
+
+------------------------------------------------------------------------
+
+## 📂 Dropdown
+
+``` lua
+SettingsSection:CreateDropdown({
+    Name = "Target Mode",
+    Options = {"Closest", "Lowest HP", "FOV"},
+    Default = "Closest",
+    Callback = function(option)
+        print(option)
+    end
+})
+```
+
+------------------------------------------------------------------------
+
+## ⌨️ Keybind Picker
+
+``` lua
+SettingsSection:CreateKeybind({
+    Name = "Toggle UI",
+    Default = Enum.KeyCode.RightShift,
+    Callback = function(key)
+        print(key)
+    end
+})
+```
+
+------------------------------------------------------------------------
+
+## 🔔 Notifications
+
+``` lua
+NebulaUI:Notify("UI Loaded Successfully", 2)
+```
+
+------------------------------------------------------------------------
+
+## 🎨 Theme Editor
+
+``` lua
+NebulaUI:SetTheme({
+    Accent = Color3.fromRGB(255, 80, 80),
+    Background = Color3.fromRGB(15, 15, 20)
+})
+```
+
+------------------------------------------------------------------------
+
+## 🌫️ Blur / Acrylic Effect
+
+``` lua
+NebulaUI:SetBlur(true)
+NebulaUI:SetBlur(false)
+```
+
+------------------------------------------------------------------------
+
+## 💾 Config System
+
+Automatically saves & loads settings.
+
+Config file:
+
+    NebulaUI_Config.json
+
+------------------------------------------------------------------------
+
+## ⚠️ Notes
+
+-   Requires exploit functions (`writefile`, `readfile`)
+-   Uses CoreGui
+-   Not intended for Roblox Studio
+
+------------------------------------------------------------------------
+
+## 🚀 Credits
+
+NebulaUI by Xacks
