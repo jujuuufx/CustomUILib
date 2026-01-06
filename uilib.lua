@@ -1474,6 +1474,25 @@ function Buster:CreateHomeTab(window, options)
     return homeTab
 end
 
+
+function Buster:CreateWindow(window,options)
+  local settingsTab = window:CreateTab("Settings")
+  local panel = settingsTab:CreatePanel({ Column = "Left", Title = "Settings" })
+  panel:CreateKeybind({
+    Name = "get money ",
+    Default = defaultgetmoneykey,
+    Callback = function(key)
+      if typeof(key) == "EnumItem" then
+        window:SetToggleKey(key)
+        window:Notify({ Title = titleText, Text = "Toggle key set to " .. key.Name, Duration = 1.5 })
+      elseif key == nil then
+        window:SetToggleKey(nil)
+        window:Notify({ Title = titleText, Text = "Toggle key cleared", Duration = 1.5 })
+      end
+    end,
+  })
+end 
+
 -- Backward compatibility: some scripts may still expect "BronxUI"
 Buster.BronxUI = Buster
 
