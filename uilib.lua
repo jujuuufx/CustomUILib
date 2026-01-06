@@ -240,47 +240,6 @@ function Buster:CreateWindow(options)
     overlay.ZIndex = 10_000
     overlay.Visible = true
     overlay.Parent = screen
-    -- Outside toggle button (always available) - Removed as per user request
-    --[[
-    local outsideSize = brandImageSize + 24
-    local outsideToggle = Instance.new("TextButton")
-    outsideToggle.Name = "OutsideToggle"
-    outsideToggle.AutoButtonColor = false
-    outsideToggle.BorderSizePixel = 0
-    outsideToggle.Size = UDim2.new(0, outsideSize, 0, outsideSize)
-    outsideToggle.Position = UDim2.new(1, -outsideSize - 12, 0, 12)
-    outsideToggle.BackgroundColor3 = Theme.Top
-    outsideToggle.Text = ""
-    outsideToggle.ZIndex = 10_200
-    outsideToggle.Parent = overlay
-    applyCorner(outsideToggle, 10)
-    applyStroke(outsideToggle, "StrokeSoft", 0.6)
-    local outsideText = Instance.new("TextLabel")
-    outsideText.Name = "OutsideText"
-    outsideText.BackgroundTransparency = 1
-    outsideText.Size = UDim2.new(1, 0, 1, 0)
-    outsideText.Position = UDim2.new(0, 0, 0, 0)
-    outsideText.Text = tostring(brandText)
-    outsideText.TextColor3 = Theme.Accent
-    outsideText.TextSize = 16
-    outsideText.Font = Enum.Font.GothamBold
-    outsideText.ZIndex = 10_210
-    outsideText.Parent = outsideToggle
-    local outsideImg = Instance.new("ImageLabel")
-    outsideImg.Name = "OutsideImage"
-    outsideImg.BackgroundTransparency = 1
-    outsideImg.Size = UDim2.new(0, brandImageSize, 0, brandImageSize)
-    outsideImg.Position = UDim2.new(0.5, -brandImageSize / 2, 0.5, -brandImageSize / 2)
-    outsideImg.Image = brandImage or ""
-    outsideImg.ImageColor3 = Theme.Accent
-    outsideImg.Visible = brandImage ~= nil and brandImage ~= ""
-    outsideImg.ZIndex = 10_210
-    outsideImg.Parent = outsideToggle
-    if outsideImg.Visible then
-        outsideText.Visible = false
-    end
-    makeDraggable(outsideToggle)
-    --]]
     local main = Instance.new("Frame")
     main.Name = "Main"
     local startW, startH = computeWindowSize()
@@ -1380,17 +1339,11 @@ function Buster:CreateWindow(options)
         window._brandTextLabel.Text = tostring(text)
         window._brandTextLabel.Visible = true
         window._brandImageLabel.Visible = false
-        -- outsideText.Text = tostring(text)
-        -- outsideText.Visible = true
-        -- outsideImg.Visible = false
     end
     function window:SetBrandImage(image)
         window._brandImageLabel.Image = tostring(image or "")
         window._brandImageLabel.Visible = window._brandImageLabel.Image ~= ""
         window._brandTextLabel.Visible = not window._brandImageLabel.Visible
-        -- outsideImg.Image = tostring(image or "")
-        -- outsideImg.Visible = outsideImg.Image ~= ""
-        -- outsideText.Visible = not outsideImg.Visible
     end
     function window:Destroy()
         screen:Destroy()
@@ -1417,9 +1370,6 @@ function Buster:CreateWindow(options)
         avatar.BackgroundColor3 = Theme.Card2
         displayName.TextColor3 = Theme.Text
         username.TextColor3 = Theme.SubText
-        -- outsideToggle.BackgroundColor3 = Theme.Top
-        -- outsideText.TextColor3 = Theme.Accent
-        -- outsideImg.ImageColor3 = Theme.Accent
         -- Add more if needed, or implement bindColor as planned for comprehensive update
     end
     if enableHome then
@@ -1476,10 +1426,6 @@ function Buster:CreateWindow(options)
             end
         end
     end)
-    -- Hook buttons
-    -- outsideToggle.MouseButton1Click:Connect(function()
-    --     window:Toggle()
-    -- end)
     return window
 end
 function Buster:CreateHomeTab(window, options)
