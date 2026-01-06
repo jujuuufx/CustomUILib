@@ -206,6 +206,7 @@ function Buster:CreateWindow(options)
     local footerText = options.Footer or subtitleText
     local brandText = options.BrandText or "S"
     local brandImage = options.BrandImage
+    local brandImageSize = options.BrandImageSize or 18
     local forcedSize = options.Size
     local enableGroups = options.Groups == true
     local defaultToggleKey = options.ToggleKey or Enum.KeyCode.RightShift
@@ -243,12 +244,13 @@ function Buster:CreateWindow(options)
     overlay.Visible = true
     overlay.Parent = screen
     -- Outside toggle button (always available)
+    local outsideSize = brandImageSize + 24
     local outsideToggle = Instance.new("TextButton")
     outsideToggle.Name = "OutsideToggle"
     outsideToggle.AutoButtonColor = false
     outsideToggle.BorderSizePixel = 0
-    outsideToggle.Size = UDim2.new(0, 42, 0, 42)
-    outsideToggle.Position = UDim2.new(1, -54, 0, 12)
+    outsideToggle.Size = UDim2.new(0, outsideSize, 0, outsideSize)
+    outsideToggle.Position = UDim2.new(1, -outsideSize - 12, 0, 12)
     outsideToggle.BackgroundColor3 = Theme.Top
     outsideToggle.Text = ""
     outsideToggle.ZIndex = 10_200
@@ -269,8 +271,8 @@ function Buster:CreateWindow(options)
     local outsideImg = Instance.new("ImageLabel")
     outsideImg.Name = "OutsideImage"
     outsideImg.BackgroundTransparency = 1
-    outsideImg.Size = UDim2.new(0, 18, 0, 18)
-    outsideImg.Position = UDim2.new(0.5, -9, 0.5, -9)
+    outsideImg.Size = UDim2.new(0, brandImageSize, 0, brandImageSize)
+    outsideImg.Position = UDim2.new(0.5, -brandImageSize / 2, 0.5, -brandImageSize / 2)
     outsideImg.Image = brandImage or ""
     outsideImg.ImageColor3 = Theme.Accent
     outsideImg.Visible = brandImage ~= nil and brandImage ~= ""
@@ -354,10 +356,11 @@ function Buster:CreateWindow(options)
     topLine.BorderSizePixel = 0
     topLine.Parent = top
     -- Small brand at left
+    local brandWrapWidth = brandImageSize + 22
     local brandWrap = Instance.new("Frame")
     brandWrap.BackgroundTransparency = 1
     brandWrap.BorderSizePixel = 0
-    brandWrap.Size = UDim2.new(0, 40, 1, 0)
+    brandWrap.Size = UDim2.new(0, brandWrapWidth, 1, 0)
     brandWrap.Position = UDim2.new(0, 14, 0, 0)
     brandWrap.Parent = top
     local brand = Instance.new("TextLabel")
@@ -374,8 +377,8 @@ function Buster:CreateWindow(options)
     local brandImg = Instance.new("ImageLabel")
     brandImg.Name = "BrandImage"
     brandImg.BackgroundTransparency = 1
-    brandImg.Size = UDim2.new(0, 18, 0, 18)
-    brandImg.Position = UDim2.new(0, 0, 0.5, -9)
+    brandImg.Size = UDim2.new(0, brandImageSize, 0, brandImageSize)
+    brandImg.Position = UDim2.new(0, 0, 0.5, -brandImageSize / 2)
     brandImg.Image = brandImage or ""
     brandImg.ImageColor3 = Theme.Accent
     brandImg.Visible = brandImage ~= nil and brandImage ~= ""
@@ -386,7 +389,7 @@ function Buster:CreateWindow(options)
     local title = Instance.new("TextLabel")
     title.BackgroundTransparency = 1
     title.Size = UDim2.new(0, 260, 0, 18)
-    title.Position = UDim2.new(0, 52, 0, 14)
+    title.Position = UDim2.new(0, brandWrapWidth + 12, 0, 14)
     title.Text = titleText
     title.TextColor3 = Theme.Text
     title.TextSize = 15
@@ -396,7 +399,7 @@ function Buster:CreateWindow(options)
     local subtitle = Instance.new("TextLabel")
     subtitle.BackgroundTransparency = 1
     subtitle.Size = UDim2.new(0, 260, 0, 16)
-    subtitle.Position = UDim2.new(0, 52, 0, 30)
+    subtitle.Position = UDim2.new(0, brandWrapWidth + 12, 0, 30)
     subtitle.Text = "| " .. footerText
     subtitle.TextColor3 = Theme.SubText
     subtitle.TextSize = 12
