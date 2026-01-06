@@ -1,131 +1,294 @@
--- UI Library ModuleScript
--- Name this script "UILibrary" and place it as a ModuleScript in ReplicatedStorage or ServerScriptService
+--// ===============================
+--// NebulaUI v2
+--// Advanced Roblox Exploit UI
+--// ===============================
 
-local UILibrary = {}
+local NebulaUI = {}
+NebulaUI.__index = NebulaUI
 
--- Helper function to create a basic frame with nice styling
-function UILibrary.CreateFrame(parent, name, size, position, backgroundColor, borderColor)
-    local frame = Instance.new("Frame")
-    frame.Name = name
-    frame.Size = size or UDim2.new(0, 200, 0, 100)
-    frame.Position = position or UDim2.new(0.5, 0, 0.5, 0)
-    frame.BackgroundColor3 = backgroundColor or Color3.fromRGB(40, 40, 40)
-    frame.BorderColor3 = borderColor or Color3.fromRGB(60, 60, 60)
-    frame.BorderSizePixel = 1
-    frame.Parent = parent
-    
-    -- Add corner rounding for a nicer look
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = frame
-    
-    -- Add shadow effect using UIStroke and UIGradient (simple glow)
-    local stroke = Instance.new("UIStroke")
-    stroke.Transparency = 0.5
-    stroke.Color = Color3.fromRGB(0, 0, 0)
-    stroke.Thickness = 2
-    stroke.Parent = frame
-    
-    return frame
+--// Services
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
+
+local LocalPlayer = Players.LocalPlayer
+
+--// ===============================
+--// THEME
+--// ===============================
+local Theme = {
+    Background = Color3.fromRGB(18,18,24),
+    Panel = Color3.fromRGB(24,24,32),
+    Accent = Color3.fromRGB(120,95,255),
+    Text = Color3.fromRGB(235,235,240),
+    SubText = Color3.fromRGB(160,160,175)
+}
+
+--// ===============================
+--// UTILS
+--// ===============================
+local function Create(class, props)
+    local obj = Instance.new(class)
+    for k,v in pairs(props) do obj[k] = v end
+    return obj
 end
 
--- Function to create a button with hover effect
-function UILibrary.CreateButton(parent, text, size, position, callback)
-    local button = Instance.new("TextButton")
-    button.Name = text
-    button.Text = text
-    button.Size = size or UDim2.new(0, 150, 0, 50)
-    button.Position = position or UDim2.new(0, 0, 0, 0)
-    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Font = Enum.Font.SourceSansBold
-    button.TextSize = 18
-    button.Parent = parent
-    
-    -- Corner rounding
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = button
-    
-    -- Hover effect
-    button.MouseEnter:Connect(function()
-        button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+local function Tween(obj, props, time)
+    TweenService:Create(obj, TweenInfo.new(time or 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
+end
+
+--// ===============================
+--// BLUR / ACRYLIC
+--// ===============================
+local Blur = Instance.new("BlurEffect")
+Blur.Size = 0
+Blur.Parent = Lighting
+
+local function SetBlur(state)
+    Tween(Blur, {Size = state and 16 or 0}, 0.3)
+end
+
+--// ===============================
+--// CONFIG SYSTEM
+--// ===============================
+local Configs = {}
+local ConfigFile = "NebulaUI_Config.json"
+
+local function SaveConfig()
+    writefile(ConfigFile, HttpService:JSONEncode(Configs))
+end
+
+local function LoadConfig()
+    if isfile(ConfigFile) then
+        Configs = HttpService:JSONDecode(readfile(ConfigFile))
+    end
+end
+
+LoadConfig()
+
+--// ===============================
+--// NOTIFICATIONS
+--// ===============================
+function NebulaUI:Notify(text, duration)
+    local gui = CoreGui:FindFirstChild("NebulaNotify") or Create("ScreenGui", {
+        Name = "NebulaNotify",
+        Parent = CoreGui
+    })
+
+    local frame = Create("Frame", {
+        Size = UDim2.fromOffset(260, 60),
+        Position = UDim2.fromScale(1,1),
+        AnchorPoint = Vector2.new(1,1),
+        BackgroundColor3 = Theme.Panel,
+        BorderSizePixel = 0,
+        Parent = gui
+    })
+
+    Create("UICorner", {CornerRadius = UDim.new(0,12), Parent = frame})
+
+    Create("TextLabel", {
+        Text = text,
+        Font = Enum.Font.Gotham,
+        TextSize = 14,
+        TextWrapped = true,
+        TextColor3 = Theme.Text,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1,-20,1,-20),
+        Position = UDim2.fromOffset(10,10),
+        Parent = frame
+    })
+
+    Tween(frame, {Position = UDim2.fromScale(1,-0.02)}, 0.25)
+
+    task.delay(duration or 2, function()
+        Tween(frame, {Position = UDim2.fromScale(1,1)}, 0.25)
+        task.wait(0.3)
+        frame:Destroy()
     end)
-    button.MouseLeave:Connect(function()
-        button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    end)
-    
-    -- Click event
-    button.MouseButton1Click:Connect(callback or function() end)
-    
-    return button
 end
 
--- Function to create a label
-function UILibrary.CreateLabel(parent, text, size, position)
-    local label = Instance.new("TextLabel")
-    label.Name = text
-    label.Text = text
-    label.Size = size or UDim2.new(0, 150, 0, 30)
-    label.Position = position or UDim2.new(0, 0, 0, 0)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.Font = Enum.Font.SourceSans
-    label.TextSize = 16
-    label.Parent = parent
-    
-    return label
-end
+--// ===============================
+--// WINDOW
+--// ===============================
+function NebulaUI:CreateWindow(cfg)
+    local Window = {}
+    setmetatable(Window, self)
 
--- Function to create a simple window (draggable frame)
-function UILibrary.CreateWindow(title, size, position)
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "UILibraryWindow"
-    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    
-    local window = UILibrary.CreateFrame(screenGui, title, size, position, Color3.fromRGB(30, 30, 30))
-    
-    -- Title bar
-    local titleBar = UILibrary.CreateFrame(window, "TitleBar", UDim2.new(1, 0, 0, 30), UDim2.new(0, 0, 0, 0), Color3.fromRGB(50, 50, 50))
-    local titleLabel = UILibrary.CreateLabel(titleBar, title, UDim2.new(1, 0, 1, 0), UDim2.new(0, 10, 0, 0))
-    
-    -- Make window draggable
-    local dragging
-    local dragInput
-    local dragStart
-    local startPos
-    
-    titleBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    SetBlur(true)
+
+    local Gui = Create("ScreenGui", {
+        Name = "NebulaUI",
+        ResetOnSpawn = false,
+        Parent = CoreGui
+    })
+
+    local Main = Create("Frame", {
+        Size = cfg.Size or UDim2.fromOffset(600,420),
+        Position = cfg.Position or UDim2.fromScale(0.5,0.5),
+        AnchorPoint = Vector2.new(0.5,0.5),
+        BackgroundColor3 = Theme.Background,
+        BorderSizePixel = 0,
+        Parent = Gui
+    })
+
+    Create("UICorner", {CornerRadius = UDim.new(0,16), Parent = Main})
+
+    -- Drag
+    local dragging, startPos, dragStart
+    Main.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
-            dragStart = input.Position
-            startPos = window.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
+            dragStart = i.Position
+            startPos = Main.Position
         end
     end)
-    
-    titleBar.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
+    UserInputService.InputChanged:Connect(function(i)
+        if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = i.Position - dragStart
+            Main.Position = startPos + UDim2.fromOffset(delta.X, delta.Y)
         end
     end)
-    
-    game:GetService("UserInputService").InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - dragStart
-            window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
     end)
-    
-    -- Content frame inside window
-    local content = UILibrary.CreateFrame(window, "Content", UDim2.new(1, 0, 1, -30), UDim2.new(0, 0, 0, 30), Color3.fromRGB(30, 30, 30))
-    content.BorderSizePixel = 0
-    
-    return content, window
+
+    -- Tabs
+    local TabBar = Create("Frame", {
+        Size = UDim2.new(0,140,1,0),
+        BackgroundColor3 = Theme.Panel,
+        BorderSizePixel = 0,
+        Parent = Main
+    })
+
+    local Content = Create("Frame", {
+        Position = UDim2.fromOffset(140,0),
+        Size = UDim2.new(1,-140,1,0),
+        BackgroundTransparency = 1,
+        Parent = Main
+    })
+
+    Window.Tabs = {}
+
+    function Window:CreateTab(name)
+        local Tab = {}
+        local Button = Create("TextButton", {
+            Text = name,
+            Font = Enum.Font.Gotham,
+            TextSize = 14,
+            TextColor3 = Theme.SubText,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1,0,0,36),
+            Parent = TabBar
+        })
+
+        local Page = Create("UIListLayout", {
+            Padding = UDim.new(0,10),
+            Parent = Create("Frame", {
+                Size = UDim2.fromScale(1,1),
+                Visible = false,
+                BackgroundTransparency = 1,
+                Parent = Content
+            })
+        })
+
+        Button.MouseButton1Click:Connect(function()
+            for _,t in pairs(Window.Tabs) do
+                t.Page.Parent.Visible = false
+                t.Button.TextColor3 = Theme.SubText
+            end
+            Page.Parent.Visible = true
+            Button.TextColor3 = Theme.Text
+        end)
+
+        table.insert(Window.Tabs, {Button = Button, Page = Page})
+
+        if #Window.Tabs == 1 then
+            Page.Parent.Visible = true
+            Button.TextColor3 = Theme.Text
+        end
+
+        -- ===============================
+        -- SECTION
+        -- ===============================
+        function Tab:CreateSection(title)
+            local Section = {}
+            local Frame = Create("Frame", {
+                Size = UDim2.new(1,-20,0,40),
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundColor3 = Theme.Panel,
+                BorderSizePixel = 0,
+                Parent = Page.Parent
+            })
+            Create("UICorner",{CornerRadius=UDim.new(0,12),Parent=Frame})
+
+            Create("TextLabel",{
+                Text=title,Font=Enum.Font.GothamBold,TextSize=14,
+                TextColor3=Theme.Text,BackgroundTransparency=1,
+                Position=UDim2.fromOffset(10,8),
+                Size=UDim2.new(1,-20,0,20),
+                Parent=Frame
+            })
+
+            local Layout = Create("UIListLayout",{
+                Padding=UDim.new(0,8),
+                Parent=Frame
+            })
+
+            -- ===============================
+            -- TOGGLE
+            -- ===============================
+            function Section:CreateToggle(cfg)
+                local state = cfg.Default or false
+                Configs[cfg.Name] = Configs[cfg.Name] ?? state
+
+                local Toggle = Create("Frame", {
+                    Size = UDim2.new(1,-20,0,32),
+                    BackgroundTransparency = 1,
+                    Parent = Frame
+                })
+
+                local Switch = Create("Frame", {
+                    Size = UDim2.fromOffset(44,22),
+                    Position = UDim2.fromScale(1,0.5),
+                    AnchorPoint = Vector2.new(1,0.5),
+                    BackgroundColor3 = Theme.Panel,
+                    Parent = Toggle
+                })
+                Create("UICorner",{CornerRadius=UDim.new(1,0),Parent=Switch})
+
+                local Knob = Create("Frame", {
+                    Size = UDim2.fromOffset(18,18),
+                    Position = state and UDim2.fromOffset(24,2) or UDim2.fromOffset(2,2),
+                    BackgroundColor3 = state and Theme.Accent or Theme.SubText,
+                    Parent = Switch
+                })
+                Create("UICorner",{CornerRadius=UDim.new(1,0),Parent=Knob})
+
+                Toggle.InputBegan:Connect(function(i)
+                    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+                        state = not state
+                        Configs[cfg.Name] = state
+                        SaveConfig()
+
+                        Tween(Knob,{
+                            Position = state and UDim2.fromOffset(24,2) or UDim2.fromOffset(2,2),
+                            BackgroundColor3 = state and Theme.Accent or Theme.SubText
+                        })
+                        cfg.Callback(state)
+                    end
+                end)
+            end
+
+            return Section
+        end
+
+        return Tab
+    end
+
+    return Window
 end
 
-return UILibrary
+return NebulaUI
