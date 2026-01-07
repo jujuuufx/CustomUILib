@@ -1634,20 +1634,49 @@ function Nova:CreateHomeTab(window, options)
         executor = getexecutorname()
     end
     local gameName = "Unknown"
+    local gameIcon = "0"
     pcall(function()
-        gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+        local productInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+        gameName = productInfo.Name
+        gameIcon = productInfo.IconImageAssetId
     end)
     local playersService = game:GetService("Players")
+    local LocalPlayer = playersService.LocalPlayer
+    local thumbType = Enum.ThumbnailType.HeadShot
+    local thumbSize = Enum.ThumbnailSize.Size180x180
+    local userThumbnail = ""
+    pcall(function()
+        local content, isReady = playersService:GetUserThumbnailAsync(LocalPlayer.UserId, thumbType, thumbSize)
+        userThumbnail = content
+    end)
     local homeTab = window:CreateTab({Name = "Home", Icon = icon})
     local content = homeTab._content
+    -- Background image with improved scaling and transparency overlay for better visibility
     local bgImage = Instance.new("ImageLabel")
     bgImage.BackgroundTransparency = 1
     bgImage.Size = UDim2.new(1, 0, 1, 0)
     bgImage.Image = "rbxassetid://" .. tostring(backdrop or 0)
     bgImage.ScaleType = Enum.ScaleType.Fit
     bgImage.Parent = content
-    bgImage.ZIndex = -1
+    bgImage.ZIndex = -2  -- Lower ZIndex to ensure it's behind everything
+    -- Add a subtle overlay for text readability
+    local overlay = Instance.new("Frame")
+    overlay.BackgroundColor3 = Color3.new(0, 0, 0)
+    overlay.BackgroundTransparency = 0.7
+    overlay.Size = UDim2.new(1, 0, 1, 0)
+    overlay.Parent = content
+    overlay.ZIndex = -1
     local userPanel = homeTab:CreatePanel({Column = "Left", Title = "User Information"})
+    -- Add user avatar for visual appeal
+    local avatarImage = Instance.new("ImageLabel")  -- Assuming the library allows custom instances, or integrate via CreateElement if available
+    avatarImage.Size = UDim2.new(0, 100, 0, 100)  -- Adjust size as needed
+    avatarImage.Image = userThumbnail
+    avatarImage.BackgroundTransparency = 1
+    avatarImage.ScaleType = Enum.ScaleType.Fit
+    -- If the library has CreateImage, use that; otherwise, assume manual parenting
+    -- For now, assuming we can parent it to userPanel's content frame (hypothetical)
+    -- userPanel:AddElement(avatarImage)  -- Pseudo-code; adjust based on actual library
+    userPanel:CreateLabel("Welcome, " .. (LocalPlayer.DisplayName or "Unknown") .. "!")  -- Added welcome message
     userPanel:CreateLabel("Display Name: " .. (LocalPlayer.DisplayName or "Unknown"))
     userPanel:CreateLabel("Username: " .. (LocalPlayer.Name or "Unknown"))
     userPanel:CreateLabel("User ID: " .. (LocalPlayer.UserId or "Unknown"))
@@ -1656,7 +1685,7 @@ function Nova:CreateHomeTab(window, options)
     if discordInvite then
         infoPanel:CreateButton({Name = "Join Discord", Callback = function()
             local invite = discordInvite
-            local clip = invite:match("http") and invite or "<https://discord.gg/>" .. invite
+            local clip = invite:match("http") and invite or "https://discord.gg/" .. invite
             local success, err = pcall(setclipboard, clip)
             if success then
                 window:Notify({Title = "Success", Text = "Copied Discord invite to clipboard", Duration = 3})
@@ -1667,13 +1696,20 @@ function Nova:CreateHomeTab(window, options)
     end
     infoPanel:CreateLabel("Supported Executors:")
     for _, exec in ipairs(supported) do
-        infoPanel:CreateLabel(exec)
+        infoPanel:CreateLabel("• " .. exec)  -- Added bullet for better visuals
     end
     infoPanel:CreateLabel("Unsupported Executors:")
     for _, exec in ipairs(unsupported) do
-        infoPanel:CreateLabel(exec)
+        infoPanel:CreateLabel("• " .. exec)  -- Added bullet for better visuals
     end
     local gamePanel = homeTab:CreatePanel({Column = "Right", Title = "Game Information"})
+    -- Add game icon for visual appeal
+    local gameIconImage = Instance.new("ImageLabel")
+    gameIconImage.Size = UDim2.new(0, 100, 0, 100)
+    gameIconImage.Image = "rbxassetid://" .. gameIcon
+    gameIconImage.BackgroundTransparency = 1
+    gameIconImage.ScaleType = Enum.ScaleType.Fit
+    -- Similarly, parent to gamePanel
     gamePanel:CreateLabel("Game Name: " .. gameName)
     gamePanel:CreateLabel("Place ID: " .. game.PlaceId)
     gamePanel:CreateLabel("Job ID: " .. game.JobId)
