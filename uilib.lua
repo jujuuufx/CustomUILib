@@ -7,7 +7,6 @@ local GuiService = game:GetService("GuiService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local HttpService = game:GetService("HttpService")
-
 local function getInsetY()
     local insetY = 0
     pcall(function()
@@ -16,7 +15,6 @@ local function getInsetY()
     end)
     return insetY
 end
-
 local Theme = {
     Bg = Color3.fromRGB(14, 15, 18),
     Top = Color3.fromRGB(18, 19, 23),
@@ -35,7 +33,6 @@ local Theme = {
     NeutralButtonHover = Color3.fromRGB(100, 100, 100),
     CloseButtonHover = Color3.fromRGB(200, 50, 60),
 }
-
 local Themes = {
     Dark = Theme,
     Light = {
@@ -57,23 +54,19 @@ local Themes = {
         CloseButtonHover = Color3.fromRGB(200, 50, 60),
     },
 }
-
 -- OldUI button colors (from oldui.lua default theme) now integrated into Theme
-
 local function tween(instance, properties, duration)
     duration = duration or 0.18
     local t = TweenService:Create(instance, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), properties)
     t:Play()
     return t
 end
-
 local function applyCorner(instance, radius)
     local c = Instance.new("UICorner")
     c.CornerRadius = UDim.new(0, radius)
     c.Parent = instance
     return c
 end
-
 local function applyStroke(instance, colorKey, transparency)
     local s = Instance.new("UIStroke")
     s.Thickness = 1
@@ -82,7 +75,6 @@ local function applyStroke(instance, colorKey, transparency)
     s.Parent = instance
     return s
 end
-
 local function makeDraggable(frame, handle)
     handle = handle or frame
     local dragging = false
@@ -113,7 +105,6 @@ local function makeDraggable(frame, handle)
         end
     end)
 end
-
 local function truncateWithStars(text, maxChars)
     text = tostring(text or "")
     maxChars = maxChars or 24
@@ -125,7 +116,6 @@ local function truncateWithStars(text, maxChars)
     end
     return string.sub(text, 1, maxChars - 2) .. "**"
 end
-
 local function safeParentGui(gui)
     if syn and syn.protect_gui then
         pcall(function()
@@ -140,7 +130,6 @@ local function safeParentGui(gui)
     end
     gui.Parent = CoreGui
 end
-
 local function createRow(parent, height)
     local row = Instance.new("Frame")
     row.BackgroundTransparency = 1
@@ -149,7 +138,6 @@ local function createRow(parent, height)
     row.Parent = parent
     return row
 end
-
 local function createText(parent, text, size, bold, colorKey)
     local lbl = Instance.new("TextLabel")
     lbl.BackgroundTransparency = 1
@@ -163,7 +151,6 @@ local function createText(parent, text, size, bold, colorKey)
     lbl.Parent = parent
     return lbl
 end
-
 local function createSquareToggle(parent, default, callback)
     local btn = Instance.new("TextButton")
     btn.AutoButtonColor = false
@@ -198,7 +185,6 @@ local function createSquareToggle(parent, default, callback)
         end,
     }
 end
-
 local function createDivider(parent)
     local div = Instance.new("Frame")
     div.BorderSizePixel = 0
@@ -209,7 +195,6 @@ local function createDivider(parent)
     div.Parent = parent
     return div
 end
-
 function Nova:CreateWindow(options)
     options = options or {}
     local titleText = options.Name or "Nova UI"
@@ -225,7 +210,6 @@ function Nova:CreateWindow(options)
     local homeOpts = typeof(options.Home) == "table" and options.Home or {}
     local enableSettings = options.Settings ~= false
     local enableConfig = options.Config ~= false
-
     local function computeWindowSize()
         if forcedSize and forcedSize.Width and forcedSize.Height then
             return forcedSize.Width, forcedSize.Height
@@ -241,13 +225,11 @@ function Nova:CreateWindow(options)
         end
         return 860, 480
     end
-
     local screen = Instance.new("ScreenGui")
     screen.Name = "Nova"
     screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     screen.ResetOnSpawn = false
     safeParentGui(screen)
-
     -- Overlay layer (used by dropdowns to stay above everything)
     local overlay = Instance.new("Frame")
     overlay.Name = "Overlay"
@@ -258,7 +240,6 @@ function Nova:CreateWindow(options)
     overlay.ZIndex = 10_000
     overlay.Visible = true
     overlay.Parent = screen
-
     local main = Instance.new("Frame")
     main.Name = "Main"
     local startW, startH = computeWindowSize()
@@ -270,7 +251,6 @@ function Nova:CreateWindow(options)
     main.Parent = screen
     applyCorner(main, 10)
     applyStroke(main, "Stroke", 0.6)
-
     -- Add resize handle - Made bigger and more noticeable
     local resizeHandle = Instance.new("Frame")
     resizeHandle.Name = "ResizeHandle"
@@ -288,7 +268,6 @@ function Nova:CreateWindow(options)
         line.Rotation = 45
         line.Parent = resizeHandle
     end
-
     local resizing = false
     local startSize
     local startInputPos
@@ -314,7 +293,6 @@ function Nova:CreateWindow(options)
             main.Size = UDim2.new(0, newWidth, 0, newHeight)
         end
     end)
-
     -- Top bar
     local top = Instance.new("Frame")
     top.Name = "TopBar"
@@ -323,14 +301,12 @@ function Nova:CreateWindow(options)
     top.BorderSizePixel = 0
     top.Parent = main
     applyCorner(top, 10)
-
     local topFix = Instance.new("Frame")
     topFix.Size = UDim2.new(1, 0, 0, 14)
     topFix.Position = UDim2.new(0, 0, 1, -14)
     topFix.BackgroundColor3 = Theme.Top
     topFix.BorderSizePixel = 0
     topFix.Parent = top
-
     local topLine = Instance.new("Frame")
     topLine.Size = UDim2.new(1, 0, 0, 1)
     topLine.Position = UDim2.new(0, 0, 1, 0)
@@ -338,7 +314,6 @@ function Nova:CreateWindow(options)
     topLine.BackgroundTransparency = 0.6
     topLine.BorderSizePixel = 0
     topLine.Parent = top
-
     -- Small brand at left
     local brandWrapWidth = brandImageSize + 22
     local brandWrap = Instance.new("Frame")
@@ -347,7 +322,6 @@ function Nova:CreateWindow(options)
     brandWrap.Size = UDim2.new(0, brandWrapWidth, 1, 0)
     brandWrap.Position = UDim2.new(0, 14, 0, 0)
     brandWrap.Parent = top
-
     local brand = Instance.new("TextLabel")
     brand.Name = "BrandText"
     brand.BackgroundTransparency = 1
@@ -359,7 +333,6 @@ function Nova:CreateWindow(options)
     brand.Font = Enum.Font.GothamBold
     brand.TextXAlignment = Enum.TextXAlignment.Left
     brand.Parent = brandWrap
-
     local brandImg = Instance.new("ImageLabel")
     brandImg.Name = "BrandImage"
     brandImg.BackgroundTransparency = 1
@@ -372,7 +345,6 @@ function Nova:CreateWindow(options)
     if brandImg.Visible then
         brand.Visible = false
     end
-
     local title = Instance.new("TextLabel")
     title.BackgroundTransparency = 1
     title.Size = UDim2.new(0, 260, 0, 18)
@@ -383,7 +355,6 @@ function Nova:CreateWindow(options)
     title.Font = Enum.Font.GothamBold
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Parent = top
-
     local subtitle = Instance.new("TextLabel")
     subtitle.BackgroundTransparency = 1
     subtitle.Size = UDim2.new(0, 260, 0, 16)
@@ -394,21 +365,18 @@ function Nova:CreateWindow(options)
     subtitle.Font = Enum.Font.Gotham
     subtitle.TextXAlignment = Enum.TextXAlignment.Left
     subtitle.Parent = top
-
     -- Only 2 small buttons (minimize + close) with oldui.lua colors
     local controls = Instance.new("Frame")
     controls.BackgroundTransparency = 1
     controls.Size = UDim2.new(0, 44, 0, 16)
     controls.Position = UDim2.new(1, -58, 0, 18)
     controls.Parent = top
-
     local controlsLayout = Instance.new("UIListLayout")
     controlsLayout.FillDirection = Enum.FillDirection.Horizontal
     controlsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
     controlsLayout.SortOrder = Enum.SortOrder.LayoutOrder
     controlsLayout.Padding = UDim.new(0, 6)
     controlsLayout.Parent = controls
-
     local minimizeBtn = Instance.new("TextButton")
     minimizeBtn.Name = "Minimize"
     minimizeBtn.AutoButtonColor = false
@@ -419,7 +387,6 @@ function Nova:CreateWindow(options)
     minimizeBtn.LayoutOrder = 1
     minimizeBtn.Parent = controls
     applyCorner(minimizeBtn, 12)
-
     local closeBtn = Instance.new("TextButton")
     closeBtn.Name = "Close"
     closeBtn.AutoButtonColor = false
@@ -430,9 +397,7 @@ function Nova:CreateWindow(options)
     closeBtn.LayoutOrder = 2
     closeBtn.Parent = controls
     applyCorner(closeBtn, 12)
-
     makeDraggable(main, top)
-
     -- Minimize / Close behavior
     local minimized = false
     local function centerTo(w, h)
@@ -465,7 +430,6 @@ function Nova:CreateWindow(options)
     closeBtn.MouseLeave:Connect(function()
         tween(closeBtn, { BackgroundColor3 = Theme.NeutralButton }, 0.12)
     end)
-
     -- Responsive auto-size like oldui.lua (unless a fixed Size is provided)
     if Camera and not forcedSize then
         Camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
@@ -479,7 +443,6 @@ function Nova:CreateWindow(options)
             }, 0.22)
         end)
     end
-
     -- Sidebar
     local sidebar = Instance.new("Frame")
     sidebar.Name = "Sidebar"
@@ -489,7 +452,6 @@ function Nova:CreateWindow(options)
     sidebar.BorderSizePixel = 0
     sidebar.Parent = main
     applyStroke(sidebar, "StrokeSoft", 0.7)
-
     local nav = Instance.new("ScrollingFrame")
     nav.Name = "Nav"
     nav.BackgroundTransparency = 1
@@ -499,13 +461,11 @@ function Nova:CreateWindow(options)
     nav.ScrollBarThickness = 0
     nav.CanvasSize = UDim2.new(0, 0, 0, 0)
     nav.Parent = sidebar
-
     local navPad = Instance.new("UIPadding")
     navPad.PaddingTop = UDim.new(0, 10)
     navPad.PaddingLeft = UDim.new(0, 10)
     navPad.PaddingRight = UDim.new(0, 10)
     navPad.Parent = nav
-
     local navLayout = Instance.new("UIListLayout")
     navLayout.SortOrder = Enum.SortOrder.LayoutOrder
     navLayout.Padding = UDim.new(0, 6)
@@ -513,7 +473,6 @@ function Nova:CreateWindow(options)
     navLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         nav.CanvasSize = UDim2.new(0, 0, 0, navLayout.AbsoluteContentSize.Y + 14)
     end)
-
     -- User profile
     local profile = Instance.new("Frame")
     profile.Name = "Profile"
@@ -523,7 +482,6 @@ function Nova:CreateWindow(options)
     profile.BorderSizePixel = 0
     profile.Parent = sidebar
     applyStroke(profile, "StrokeSoft", 0.7)
-
     local avatar = Instance.new("Frame")
     avatar.Size = UDim2.new(0, 34, 0, 34)
     avatar.Position = UDim2.new(0, 12, 0, 19)
@@ -532,7 +490,6 @@ function Nova:CreateWindow(options)
     avatar.Parent = profile
     applyCorner(avatar, 17)
     applyStroke(avatar, "StrokeSoft", 0.65)
-
     local avatarImg = Instance.new("ImageLabel")
     avatarImg.Name = "AvatarImage"
     avatarImg.BackgroundTransparency = 1
@@ -553,15 +510,12 @@ function Nova:CreateWindow(options)
             end
         end
     end)
-
     local displayName = createText(profile, truncateWithStars((LocalPlayer and LocalPlayer.DisplayName) or "User", 18), 10, true, "Text")
     displayName.Size = UDim2.new(1, -60, 0, 16)
     displayName.Position = UDim2.new(0, 54, 0, 22)
-
     local username = createText(profile, truncateWithStars((LocalPlayer and ("@" .. LocalPlayer.Name)) or "@user", 20), 9, false, "SubText")
     username.Size = UDim2.new(1, -60, 0, 14)
     username.Position = UDim2.new(0, 54, 0, 38)
-
     -- Content area
     local content = Instance.new("Frame")
     content.Name = "Content"
@@ -570,13 +524,11 @@ function Nova:CreateWindow(options)
     content.Size = UDim2.new(1, -176, 1, -52)
     content.Position = UDim2.new(0, 176, 0, 52)
     content.Parent = main
-
     local tabRoot = Instance.new("Frame")
     tabRoot.Name = "TabRoot"
     tabRoot.BackgroundTransparency = 1
     tabRoot.Size = UDim2.new(1, 0, 1, 0)
     tabRoot.Parent = content
-
     local window = {}
     window._screen = screen
     window._main = main
@@ -594,7 +546,6 @@ function Nova:CreateWindow(options)
     window._keybindListening = false
     window._toggleKey = defaultToggleKey
     window._configElements = {}
-
     local function computeSidebarWidth(w)
         if UserInputService.TouchEnabled then
             if w < 680 then
@@ -606,7 +557,6 @@ function Nova:CreateWindow(options)
         end
         return 176
     end
-
     local function applySubLayout()
         local w = main.Size.X.Offset
         local sidebarW = computeSidebarWidth(w)
@@ -619,7 +569,6 @@ function Nova:CreateWindow(options)
             end
         end
     end
-
     applySubLayout()
     main:GetPropertyChangedSignal("Size"):Connect(function()
         if minimized then
@@ -627,7 +576,6 @@ function Nova:CreateWindow(options)
         end
         applySubLayout()
     end)
-
     function window:AddGroup(name)
         if not window._enableGroups then
             window._currentGroup = name
@@ -645,7 +593,6 @@ function Nova:CreateWindow(options)
         window._currentGroup = name
         return header
     end
-
     local function setTabActive(tab, active)
         if not tab or not tab._button then
             return
@@ -664,7 +611,6 @@ function Nova:CreateWindow(options)
             tab._iconTint.ImageColor3 = Theme.SubText
         end
     end
-
     function window:CreateTab(tabOptions)
         local name
         local icon
@@ -1371,7 +1317,6 @@ function Nova:CreateWindow(options)
         end
         return tab
     end
-
     -- Notifications (toasts)
     local notifyHost = Instance.new("Frame")
     notifyHost.Name = "Notifications"
@@ -1381,13 +1326,11 @@ function Nova:CreateWindow(options)
     notifyHost.Position = UDim2.new(1, -332, 0, 12)
     notifyHost.ZIndex = 10_100
     notifyHost.Parent = overlay
-
     local notifyLayout = Instance.new("UIListLayout")
     notifyLayout.SortOrder = Enum.SortOrder.LayoutOrder
     notifyLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
     notifyLayout.Padding = UDim.new(0, 8)
     notifyLayout.Parent = notifyHost
-
     function window:Notify(opt)
         opt = opt or {}
         local nTitle = opt.Title or titleText
@@ -1426,7 +1369,6 @@ function Nova:CreateWindow(options)
             end
         end)
     end
-
     function window:Toggle()
         if not main.Visible then
             main.Visible = true
@@ -1440,35 +1382,28 @@ function Nova:CreateWindow(options)
             main.Visible = false
         end
     end
-
     function window:SetTitle(text)
         window._titleLabel.Text = tostring(text)
     end
-
     function window:SetFooter(text)
         window._subtitleLabel.Text = "| " .. tostring(text)
     end
-
     function window:SetBrandText(text)
         window._brandTextLabel.Text = tostring(text)
         window._brandTextLabel.Visible = true
         window._brandImageLabel.Visible = false
     end
-
     function window:SetBrandImage(image)
         window._brandImageLabel.Image = tostring(image or "")
         window._brandImageLabel.Visible = window._brandImageLabel.Image ~= ""
         window._brandTextLabel.Visible = not window._brandImageLabel.Visible
     end
-
     function window:Destroy()
         screen:Destroy()
     end
-
     function window:SetToggleKey(key)
         window._toggleKey = key
     end
-
     function window:ApplyTheme(themeName)
         Theme = Themes[themeName] or Themes.Dark
         -- Update all elements (assuming we replaced assignments with direct Theme references; in practice, refresh colors here if needed)
@@ -1490,11 +1425,9 @@ function Nova:CreateWindow(options)
         username.TextColor3 = Theme.SubText
         -- Add more if needed, or implement bindColor as planned for comprehensive update
     end
-
     if enableHome then
         Nova:CreateHomeTab(window, homeOpts)
     end
-
     if enableSettings then
         local settingsTab = window:CreateTab("Settings")
         local panel = settingsTab:CreatePanel({ Column = "Left", Title = "Settings" })
@@ -1522,7 +1455,6 @@ function Nova:CreateWindow(options)
             end
         })
     end
-
     if enableConfig then
         local configTab = window:CreateTab("Config")
         local leftPanel = configTab:CreatePanel({Title = "Configuration"})
@@ -1612,7 +1544,6 @@ function Nova:CreateWindow(options)
         refreshConfigs()
         configTab._button.MouseButton1Click:Connect(refreshConfigs)
     end
-
     -- Global keybind to open/close UI
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then
@@ -1637,75 +1568,649 @@ function Nova:CreateWindow(options)
             end
         end
     end)
-
     return window
 end
-
 function Nova:CreateHomeTab(window, options)
-    local icon = options.Icon
-    local backdrop = options.Backdrop
-    local discordInvite = options.DiscordInvite
-    local supported = options.SupportedExecutors or {}
-    local unsupported = options.UnsupportedExecutors or {}
+    options = options or {}
+
+    local tabName = options.Name or "Home"
+    local tabIcon = options.Icon
+    local homeTab = window:CreateTab({ Name = tabName, Icon = tabIcon })
+
+    local RunService = game:GetService("RunService")
+    local StatsService = game:GetService("Stats")
+    local MarketplaceService = game:GetService("MarketplaceService")
+    local LocalizationService = game:GetService("LocalizationService")
+
+    local discordInvite = options.DiscordInvite or ""
+    local supportedExecutors = options.SupportedExecutors or {}
+    local unsupportedExecutors = options.UnsupportedExecutors or {}
     local changelog = options.Changelog or {}
-    local executor = "Unknown"
-    if identifyexecutor then
-        executor = identifyexecutor()
-    elseif getexecutorname then
-        executor = getexecutorname()
-    end
-    local gameName = "Unknown"
-    pcall(function()
-        gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
-    end)
-    local playersService = game:GetService("Players")
-    local homeTab = window:CreateTab({Name = "Home", Icon = icon})
+
     local content = homeTab._content
-    local bgImage = Instance.new("ImageLabel")
-    bgImage.BackgroundTransparency = 1
-    bgImage.Size = UDim2.new(1, 0, 1, 0)
-    bgImage.Image = "rbxassetid://" .. tostring(backdrop or 0)
-    bgImage.ScaleType = Enum.ScaleType.Fit
-    bgImage.Parent = content
-    bgImage.ZIndex = -1
-    local userPanel = homeTab:CreatePanel({Column = "Left", Title = "User Information"})
-    userPanel:CreateLabel("Display Name: " .. (LocalPlayer.DisplayName or "Unknown"))
-    userPanel:CreateLabel("Username: " .. (LocalPlayer.Name or "Unknown"))
-    userPanel:CreateLabel("User ID: " .. (LocalPlayer.UserId or "Unknown"))
-    userPanel:CreateLabel("Executor: " .. executor)
-    local infoPanel = homeTab:CreatePanel({Column = "Left", Title = "Info"})
-    if discordInvite then
-        infoPanel:CreateButton({Name = "Join Discord", Callback = function()
-            local invite = discordInvite
-            local clip = invite:match("http") and invite or "<https://discord.gg/>" .. invite
-            local success, err = pcall(setclipboard, clip)
-            if success then
-                window:Notify({Title = "Success", Text = "Copied Discord invite to clipboard", Duration = 3})
-            else
-                window:Notify({Title = "Error", Text = "Could not copy to clipboard. Invite: " .. invite, Duration = 5})
+    local leftCol = content and content:FindFirstChild("Left")
+    local rightCol = content and content:FindFirstChild("Right")
+    if not content or not leftCol or not rightCol then
+        return homeTab
+    end
+
+    for _, child in ipairs(content:GetChildren()) do
+        if string.sub(child.Name, 1, 4) == "Home" then
+            child:Destroy()
+        end
+    end
+    for _, sf in ipairs({ leftCol, rightCol }) do
+        for _, child in ipairs(sf:GetChildren()) do
+            if string.sub(child.Name, 1, 4) == "Home" then
+                child:Destroy()
             end
-        end})
+        end
     end
-    infoPanel:CreateLabel("Supported Executors:")
-    for _, exec in ipairs(supported) do
-        infoPanel:CreateLabel(exec)
+
+    local function safeDestroyConnection(conn)
+        if conn and typeof(conn) == "RBXScriptConnection" then
+            pcall(function()
+                conn:Disconnect()
+            end)
+        end
     end
-    infoPanel:CreateLabel("Unsupported Executors:")
-    for _, exec in ipairs(unsupported) do
-        infoPanel:CreateLabel(exec)
+
+    local destroyed = false
+    local connections = {}
+    content.AncestryChanged:Connect(function(_, parent)
+        if parent == nil and not destroyed then
+            destroyed = true
+            for _, conn in ipairs(connections) do
+                safeDestroyConnection(conn)
+            end
+        end
+    end)
+
+    local function createCard(parent, titleText, subtitleText, iconImage, fixedHeight)
+        local cardInset = 6
+        local card = Instance.new("Frame")
+        card.Name = "HomeCard"
+        card.BackgroundColor3 = Theme.Card
+        card.BorderSizePixel = 0
+        card.Size = UDim2.new(1, -(cardInset * 2), 0, fixedHeight or 96)
+        card.Position = UDim2.new(0, cardInset, 0, 0)
+        card.Parent = parent
+        applyCorner(card, 10)
+        applyStroke(card, Theme.StrokeSoft, 0.55)
+
+        local cardPad = Instance.new("UIPadding")
+        cardPad.Name = "HomePad"
+        cardPad.PaddingTop = UDim.new(0, 10)
+        cardPad.PaddingLeft = UDim.new(0, 10)
+        cardPad.PaddingRight = UDim.new(0, 10)
+        cardPad.PaddingBottom = UDim.new(0, 10)
+        cardPad.Parent = card
+
+        local headerRow = Instance.new("Frame")
+        headerRow.Name = "HomeHeader"
+        headerRow.BackgroundTransparency = 1
+        headerRow.BorderSizePixel = 0
+        headerRow.Size = UDim2.new(1, 0, 0, 22)
+        headerRow.Parent = card
+
+        local icon = Instance.new("ImageLabel")
+        icon.Name = "HomeIcon"
+        icon.BackgroundTransparency = 1
+        icon.BorderSizePixel = 0
+        icon.Size = UDim2.new(0, 16, 0, 16)
+        icon.Position = UDim2.new(0, 0, 0.5, -8)
+        icon.Image = iconImage or ""
+        icon.ImageColor3 = Theme.Text
+        icon.Visible = icon.Image ~= ""
+        icon.Parent = headerRow
+
+        local title = createText(headerRow, titleText or "", 13, true, Theme.Text)
+        title.Name = "HomeTitle"
+        title.Size = UDim2.new(1, -22, 1, 0)
+        title.Position = UDim2.new(0, icon.Visible and 22 or 0, 0, 0)
+        title.TextXAlignment = Enum.TextXAlignment.Left
+
+        local subtitle = nil
+        if subtitleText and subtitleText ~= "" then
+            subtitle = createText(card, subtitleText, 11, false, Theme.SubText)
+            subtitle.Name = "HomeSubtitle"
+            subtitle.Size = UDim2.new(1, 0, 0, 16)
+            subtitle.Position = UDim2.new(0, 0, 0, 26)
+            subtitle.TextXAlignment = Enum.TextXAlignment.Left
+        end
+
+        local body = Instance.new("Frame")
+        body.Name = "HomeBody"
+        body.BackgroundTransparency = 1
+        body.BorderSizePixel = 0
+        body.Position = UDim2.new(0, 0, 0, subtitle and 46 or 28)
+        body.Size = UDim2.new(1, 0, 1, -(subtitle and 46 or 28))
+        body.Parent = card
+
+        return card, body
     end
-    local gamePanel = homeTab:CreatePanel({Column = "Right", Title = "Game Information"})
-    gamePanel:CreateLabel("Game Name: " .. gameName)
-    gamePanel:CreateLabel("Place ID: " .. game.PlaceId)
-    gamePanel:CreateLabel("Job ID: " .. game.JobId)
-    gamePanel:CreateLabel("Players: " .. #playersService:GetPlayers() .. "/" .. playersService.MaxPlayers)
-    local changePanel = homeTab:CreatePanel({Column = "Right", Title = "Changelog"})
-    for _, entry in ipairs(changelog) do
-        changePanel:CreateLabel((entry.Title or "Update") .. " - " .. (entry.Date or "Unknown"))
-        changePanel:CreateLabel(entry.Description or "")
-        changePanel:Divider()
+
+    local welcomeHeight = 110
+    local topGap = 12
+    local topOffset = welcomeHeight + topGap
+
+    local welcome = Instance.new("Frame")
+    welcome.Name = "HomeWelcome"
+    welcome.BackgroundColor3 = Theme.Card
+    welcome.BorderSizePixel = 0
+    welcome.Size = UDim2.new(1, 0, 0, welcomeHeight)
+    welcome.Position = UDim2.new(0, 0, 0, 0)
+    welcome.Parent = content
+    applyCorner(welcome, 12)
+    applyStroke(welcome, Theme.Accent, 0.75)
+
+    local backdrop = Instance.new("ImageLabel")
+    backdrop.Name = "HomeBackdrop"
+    backdrop.BackgroundTransparency = 1
+    backdrop.BorderSizePixel = 0
+    backdrop.Size = UDim2.new(1, 0, 1, 0)
+    backdrop.ScaleType = Enum.ScaleType.Crop
+    backdrop.ImageTransparency = 0.7
+    backdrop.Image = ""
+    backdrop.ZIndex = 1
+    backdrop.Parent = welcome
+    applyCorner(backdrop, 12)
+
+    if options.Backdrop ~= nil then
+        if options.Backdrop == 0 then
+            backdrop.Image = "https://www.roblox.com/asset-thumbnail/image?assetId=" .. game.PlaceId .. "&width=768&height=432&format=png"
+        else
+            backdrop.Image = "rbxassetid://" .. tostring(options.Backdrop)
+        end
     end
+
+    local backdropFade = Instance.new("Frame")
+    backdropFade.Name = "HomeBackdropFade"
+    backdropFade.BackgroundColor3 = Theme.Card
+    backdropFade.BorderSizePixel = 0
+    backdropFade.BackgroundTransparency = 0.06
+    backdropFade.Size = UDim2.new(1, 0, 1, 0)
+    backdropFade.ZIndex = 2
+    backdropFade.Parent = welcome
+    applyCorner(backdropFade, 12)
+
+    local welcomePad = Instance.new("UIPadding")
+    welcomePad.Name = "HomeWelcomePad"
+    welcomePad.PaddingTop = UDim.new(0, 12)
+    welcomePad.PaddingLeft = UDim.new(0, 12)
+    welcomePad.PaddingRight = UDim.new(0, 12)
+    welcomePad.PaddingBottom = UDim.new(0, 12)
+    welcomePad.Parent = welcome
+
+    local welcomeContent = Instance.new("Frame")
+    welcomeContent.Name = "HomeWelcomeContent"
+    welcomeContent.BackgroundTransparency = 1
+    welcomeContent.BorderSizePixel = 0
+    welcomeContent.Size = UDim2.new(1, 0, 1, 0)
+    welcomeContent.ZIndex = 3
+    welcomeContent.Parent = welcome
+
+    local avatarWrap = Instance.new("Frame")
+    avatarWrap.Name = "HomeAvatarWrap"
+    avatarWrap.BackgroundColor3 = Theme.Card2
+    avatarWrap.BorderSizePixel = 0
+    avatarWrap.Size = UDim2.new(0, 54, 0, 54)
+    avatarWrap.Position = UDim2.new(0, 0, 0.5, -27)
+    avatarWrap.ZIndex = 4
+    avatarWrap.Parent = welcomeContent
+    applyCorner(avatarWrap, 27)
+    applyStroke(avatarWrap, Theme.StrokeSoft, 0.65)
+
+    local avatarImg = Instance.new("ImageLabel")
+    avatarImg.Name = "HomeAvatar"
+    avatarImg.BackgroundTransparency = 1
+    avatarImg.BorderSizePixel = 0
+    avatarImg.Size = UDim2.new(1, 0, 1, 0)
+    avatarImg.ScaleType = Enum.ScaleType.Crop
+    avatarImg.ZIndex = 5
+    avatarImg.Parent = avatarWrap
+    applyCorner(avatarImg, 27)
+
+    task.spawn(function()
+        pcall(function()
+            local lp = Players.LocalPlayer
+            if not (lp and lp.UserId) then
+                return
+            end
+            local thumb = Players:GetUserThumbnailAsync(lp.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+            if avatarImg and avatarImg.Parent then
+                avatarImg.Image = thumb
+            end
+        end)
+    end)
+
+    local welcomeTitle = createText(welcomeContent, "Welcome, " .. tostring((Players.LocalPlayer and Players.LocalPlayer.DisplayName) or "User"), 18, true, Theme.Text)
+    welcomeTitle.Name = "HomeWelcomeTitle"
+    welcomeTitle.Position = UDim2.new(0, 66, 0, 18)
+    welcomeTitle.Size = UDim2.new(1, -220, 0, 22)
+    welcomeTitle.ZIndex = 5
+
+    local welcomeSub = createText(welcomeContent, "", 12, false, Theme.Text)
+    welcomeSub.Name = "HomeWelcomeSub"
+    welcomeSub.Position = UDim2.new(0, 66, 0, 42)
+    welcomeSub.Size = UDim2.new(1, -220, 0, 18)
+    welcomeSub.ZIndex = 5
+    welcomeSub.TextTransparency = 0.25
+
+    local timeLabel = createText(welcomeContent, "", 12, false, Theme.Text)
+    timeLabel.Name = "HomeTime"
+    timeLabel.TextXAlignment = Enum.TextXAlignment.Right
+    timeLabel.Position = UDim2.new(1, -8, 0, 20)
+    timeLabel.Size = UDim2.new(0, 200, 0, 18)
+    timeLabel.ZIndex = 5
+    timeLabel.TextTransparency = 0.25
+
+    local dateLabel = createText(welcomeContent, "", 12, false, Theme.Text)
+    dateLabel.Name = "HomeDate"
+    dateLabel.TextXAlignment = Enum.TextXAlignment.Right
+    dateLabel.Position = UDim2.new(1, -8, 0, 42)
+    dateLabel.Size = UDim2.new(0, 200, 0, 18)
+    dateLabel.ZIndex = 5
+    dateLabel.TextTransparency = 0.25
+
+    local function getGreetingString(hour)
+        if hour >= 4 and hour < 12 then
+            return "Good Morning!"
+        end
+        if hour >= 12 and hour < 19 then
+            return "How's Your Day Going?"
+        end
+        if hour >= 19 and hour <= 23 then
+            return "Sweet Dreams."
+        end
+        return "Jeez you should be asleep..."
+    end
+
+    task.spawn(function()
+        while not destroyed and welcome and welcome.Parent do
+            local t = os.date("*t")
+            local formattedTime = string.format("%02d : %02d : %02d", t.hour, t.min, t.sec)
+            timeLabel.Text = formattedTime
+            dateLabel.Text = string.format("%02d / %02d / %02d", t.day, t.month, t.year % 100)
+            local lp = Players.LocalPlayer
+            local lpName = (lp and lp.Name) or "User"
+            welcomeSub.Text = getGreetingString(t.hour) .. " | " .. tostring(lpName)
+            task.wait(1)
+        end
+    end)
+
+    local function applyHomeColumns(w)
+        local h = content.AbsoluteSize.Y
+        local remaining = math.max(0, h - topOffset)
+
+        if w < 720 then
+            local leftH = math.max(0, math.floor(remaining * 0.52 - 6))
+            local rightH = math.max(0, remaining - leftH - 12)
+
+            leftCol.Size = UDim2.new(1, 0, 0, leftH)
+            leftCol.Position = UDim2.new(0, 0, 0, topOffset)
+
+            rightCol.Size = UDim2.new(1, 0, 0, rightH)
+            rightCol.Position = UDim2.new(0, 0, 0, topOffset + leftH + 12)
+        else
+            leftCol.Size = UDim2.new(0.58, -8, 1, -topOffset)
+            leftCol.Position = UDim2.new(0, 0, 0, topOffset)
+
+            rightCol.Size = UDim2.new(0.42, -8, 1, -topOffset)
+            rightCol.Position = UDim2.new(0.58, 16, 0, topOffset)
+        end
+    end
+
+    homeTab._applyColumns = applyHomeColumns
+    applyHomeColumns(window._main.Size.X.Offset)
+    table.insert(connections, content:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+        applyHomeColumns(window._main.Size.X.Offset)
+    end))
+
+    do
+        local discordCard = createCard(leftCol, "Discord", "Tap to join the discord of\nyour script.", options.DiscordIcon, 88)
+
+        local discordInteract = Instance.new("TextButton")
+        discordInteract.Name = "HomeDiscordInteract"
+        discordInteract.AutoButtonColor = false
+        discordInteract.BackgroundTransparency = 1
+        discordInteract.BorderSizePixel = 0
+        discordInteract.Text = ""
+        discordInteract.Size = UDim2.new(1, 0, 1, 0)
+        discordInteract.Position = UDim2.new(0, 0, 0, 0)
+        discordInteract.Parent = discordCard
+
+        discordInteract.MouseEnter:Connect(function()
+            tween(discordCard, { BackgroundColor3 = Theme.Card2 }, 0.12)
+        end)
+        discordInteract.MouseLeave:Connect(function()
+            tween(discordCard, { BackgroundColor3 = Theme.Card }, 0.12)
+        end)
+        discordInteract.MouseButton1Click:Connect(function()
+            if discordInvite == "" then
+                window:Notify({ Title = "Discord", Text = "No invite set", Duration = 2 })
+                return
+            end
+            pcall(function()
+                setclipboard("https://discord.gg/" .. tostring(discordInvite))
+            end)
+            window:Notify({ Title = "Discord", Text = "Invite copied", Duration = 2 })
+        end)
+
+        local gameName = "Unknown"
+        pcall(function()
+            gameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
+        end)
+
+        local serverCard, serverBody = createCard(
+            leftCol,
+            "Server",
+            "Currently Playing " .. truncateWithStars(gameName, 26) .. "...",
+            options.ServerIcon,
+            250
+        )
+
+        local grid = Instance.new("Frame")
+        grid.Name = "HomeServerGrid"
+        grid.BackgroundTransparency = 1
+        grid.BorderSizePixel = 0
+        grid.Size = UDim2.new(1, 0, 1, 0)
+        grid.Parent = serverBody
+
+        local gridLayout = Instance.new("UIGridLayout")
+        gridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
+        gridLayout.CellSize = UDim2.new(0.5, -5, 0, 56)
+        gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        gridLayout.Parent = grid
+
+        local function statTile(titleText)
+            local tile = Instance.new("Frame")
+            tile.Name = "HomeStatTile"
+            tile.BackgroundColor3 = Theme.Card2
+            tile.BorderSizePixel = 0
+            tile.Parent = grid
+            applyCorner(tile, 10)
+            applyStroke(tile, Theme.StrokeSoft, 0.7)
+
+            local p = Instance.new("UIPadding")
+            p.Name = "HomeStatPad"
+            p.PaddingTop = UDim.new(0, 8)
+            p.PaddingLeft = UDim.new(0, 10)
+            p.PaddingRight = UDim.new(0, 10)
+            p.PaddingBottom = UDim.new(0, 8)
+            p.Parent = tile
+
+            local title = createText(tile, titleText, 11, true, Theme.Text)
+            title.Size = UDim2.new(1, 0, 0, 16)
+
+            local value = createText(tile, "", 11, false, Theme.SubText)
+            value.Position = UDim2.new(0, 0, 0, 18)
+            value.Size = UDim2.new(1, 0, 0, 30)
+            value.TextWrapped = true
+            value.TextYAlignment = Enum.TextYAlignment.Top
+            return tile, value
+        end
+
+        local tilePlayers, valPlayers = statTile("Players")
+        local tileCapacity, valCapacity = statTile("Capacity")
+        local tileLatency, valLatency = statTile("Latency")
+        local tileJoin, valJoin = statTile("Join Script")
+        local tileTime, valTime = statTile("Time")
+        local tileRegion, valRegion = statTile("Region")
+
+        valJoin.Text = "Click to copy"
+        local joinInteract = Instance.new("TextButton")
+        joinInteract.Name = "HomeJoinInteract"
+        joinInteract.AutoButtonColor = false
+        joinInteract.BackgroundTransparency = 1
+        joinInteract.BorderSizePixel = 0
+        joinInteract.Text = ""
+        joinInteract.Size = UDim2.new(1, 0, 1, 0)
+        joinInteract.Parent = tileJoin
+        joinInteract.MouseButton1Click:Connect(function()
+            local scriptText = string.format(
+                'game:GetService("TeleportService"):TeleportToPlaceInstance(%d, "%s", game:GetService("Players").LocalPlayer)',
+                game.PlaceId,
+                tostring(game.JobId)
+            )
+            pcall(function()
+                setclipboard(scriptText)
+            end)
+            window:Notify({ Title = "Server", Text = "Join script copied", Duration = 2 })
+        end)
+
+        local function updateCounts()
+            valPlayers.Text = tostring(#Players:GetPlayers()) .. " Players\nIn This Server"
+            valCapacity.Text = tostring(Players.MaxPlayers) .. " Players\nCan Join"
+        end
+        updateCounts()
+        table.insert(connections, Players.PlayerAdded:Connect(updateCounts))
+        table.insert(connections, Players.PlayerRemoving:Connect(updateCounts))
+
+        task.spawn(function()
+            pcall(function()
+                local region = LocalizationService:GetCountryRegionForPlayerAsync(LocalPlayer)
+                if valRegion and valRegion.Parent then
+                    valRegion.Text = tostring(region)
+                end
+            end)
+        end)
+
+        local startTick = tick()
+
+        local function formatElapsed(sec)
+            sec = math.max(0, math.floor(sec))
+            if sec < 60 then
+                return tostring(sec) .. "s"
+            end
+            if sec < 3600 then
+                return tostring(math.floor(sec / 60)) .. "m"
+            end
+            return tostring(math.floor(sec / 3600)) .. "h"
+        end
+
+        local fpsCounter = 0
+        local lastFpsUpdate = tick()
+
+        local function getPingMs()
+            local ping = nil
+            pcall(function()
+                ping = StatsService.PerformanceStats.Ping:GetValue()
+            end)
+            if typeof(ping) == "number" then
+                return math.round(ping)
+            end
+
+            local netPing = nil
+            pcall(function()
+                netPing = LocalPlayer:GetNetworkPing()
+            end)
+            if typeof(netPing) == "number" then
+                return math.round(netPing * 1000)
+            end
+            return 0
+        end
+
+        table.insert(
+            connections,
+            RunService.Heartbeat:Connect(function()
+                if destroyed then
+                    return
+                end
+                fpsCounter += 1
+                local now = tick()
+                if now - lastFpsUpdate >= 1 then
+                    local pingMs = getPingMs()
+                    valLatency.Text = tostring(fpsCounter) .. " FPS\n" .. tostring(pingMs) .. "ms"
+                    valTime.Text = formatElapsed(now - startTick)
+                    fpsCounter = 0
+                    lastFpsUpdate = now
+                end
+            end)
+        )
+
+        local changelogCard, changelogBody = createCard(leftCol, "Changelog", "", options.ChangelogIcon, 250)
+        changelogCard.Name = "HomeChangelog"
+
+        if changelog[1] then
+            local latest = changelog[1]
+            local title = createText(changelogBody, tostring(latest.Title or "Latest"), 13, true, Theme.Text)
+            title.Size = UDim2.new(1, 0, 0, 18)
+
+            if latest.Date then
+                local date = createText(changelogBody, tostring(latest.Date), 11, false, Theme.SubText)
+                date.Position = UDim2.new(0, 0, 0, 20)
+                date.Size = UDim2.new(1, 0, 0, 16)
+            end
+
+            if latest.Description then
+                local desc = createText(changelogBody, tostring(latest.Description), 11, false, Theme.SubText)
+                desc.Position = UDim2.new(0, 0, 0, 40)
+                desc.Size = UDim2.new(1, 0, 1, -40)
+                desc.TextWrapped = true
+                desc.TextYAlignment = Enum.TextYAlignment.Top
+            end
+        else
+            local empty = createText(changelogBody, "No updates yet.", 11, false, Theme.SubText)
+            empty.Size = UDim2.new(1, 0, 1, 0)
+            empty.TextYAlignment = Enum.TextYAlignment.Top
+        end
+    end
+
+    do
+        local accountCard = createCard(rightCol, "Account", "Coming Soon.", options.AccountIcon, 88)
+        accountCard.Name = "HomeAccount"
+
+        local executorName = (identifyexecutor and identifyexecutor())
+            or (getexecutorname and getexecutorname())
+            or "Roblox Studio"
+
+        local execCard, execBody = createCard(rightCol, tostring(executorName), "", options.ExecutorIcon, 88)
+        execCard.Name = "HomeExecutor"
+
+        table.insert(unsupportedExecutors, "Roblox Studio")
+
+        local execText = "Your Executor Seems To Be\nSupported By This Script."
+        if table.find(unsupportedExecutors, executorName) then
+            execText = "Your Executor Is Unsupported\nBy This Script."
+        elseif #supportedExecutors > 0 and not table.find(supportedExecutors, executorName) then
+            execText = "Your Executor Is Unsupported\nBy This Script."
+        end
+        local l = createText(execBody, execText, 11, false, Theme.SubText)
+        l.Size = UDim2.new(1, 0, 1, 0)
+        l.TextWrapped = true
+        l.TextYAlignment = Enum.TextYAlignment.Top
+
+        local friendsCard, friendsBody = createCard(rightCol, "Friends", "", options.FriendsIcon, 250)
+        friendsCard.Name = "HomeFriends"
+
+        local grid = Instance.new("Frame")
+        grid.Name = "HomeFriendsGrid"
+        grid.BackgroundTransparency = 1
+        grid.BorderSizePixel = 0
+        grid.Size = UDim2.new(1, 0, 1, 0)
+        grid.Parent = friendsBody
+
+        local gridLayout = Instance.new("UIGridLayout")
+        gridLayout.CellPadding = UDim2.new(0, 10, 0, 10)
+        gridLayout.CellSize = UDim2.new(0.5, -5, 0, 56)
+        gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        gridLayout.Parent = grid
+
+        local function friendTile(titleText)
+            local tile = Instance.new("Frame")
+            tile.Name = "HomeFriendTile"
+            tile.BackgroundColor3 = Theme.Card2
+            tile.BorderSizePixel = 0
+            tile.Parent = grid
+            applyCorner(tile, 10)
+            applyStroke(tile, Theme.StrokeSoft, 0.7)
+
+            local p = Instance.new("UIPadding")
+            p.Name = "HomeFriendPad"
+            p.PaddingTop = UDim.new(0, 8)
+            p.PaddingLeft = UDim.new(0, 10)
+            p.PaddingRight = UDim.new(0, 10)
+            p.PaddingBottom = UDim.new(0, 8)
+            p.Parent = tile
+
+            local title = createText(tile, titleText, 11, true, Theme.Text)
+            title.Size = UDim2.new(1, 0, 0, 16)
+            local value = createText(tile, "0 friends", 11, false, Theme.SubText)
+            value.Position = UDim2.new(0, 0, 0, 18)
+            value.Size = UDim2.new(1, 0, 0, 30)
+            value.TextWrapped = true
+            value.TextYAlignment = Enum.TextYAlignment.Top
+            return value
+        end
+
+        local inServerLabel = friendTile("In Server")
+        local offlineLabel = friendTile("Offline")
+        local onlineLabel = friendTile("Online")
+        local totalLabel = friendTile("Total")
+
+        local friendsCooldown = 0
+        local function checkFriends()
+            if friendsCooldown > 0 then
+                friendsCooldown -= 1
+                return
+            end
+            friendsCooldown = 25
+
+            local lp = Players.LocalPlayer
+            if not (lp and lp.UserId) then
+                return
+            end
+
+            local total = 0
+            local online = 0
+            local inServer = 0
+
+            pcall(function()
+                online = #lp:GetFriendsOnline()
+            end)
+
+            pcall(function()
+                local playersFriends = {}
+                local list = Players:GetFriendsAsync(lp.UserId)
+                while true do
+                    for _, data in list:GetCurrentPage() do
+                        total += 1
+                        table.insert(playersFriends, data)
+                    end
+                    if list.IsFinished then
+                        break
+                    end
+                    list:AdvanceToNextPageAsync()
+                end
+
+                for _, data in ipairs(playersFriends) do
+                    if Players:FindFirstChild(data.Username) then
+                        inServer += 1
+                    end
+                end
+            end)
+
+            local offline = math.max(0, total - online)
+
+            inServerLabel.Text = tostring(inServer) .. " friends"
+            offlineLabel.Text = tostring(offline) .. " friends"
+            onlineLabel.Text = tostring(online) .. " friends"
+            totalLabel.Text = tostring(total) .. " friends"
+        end
+
+        checkFriends()
+        table.insert(
+            connections,
+            RunService.Heartbeat:Connect(function()
+                if destroyed then
+                    return
+                end
+                checkFriends()
+            end)
+        )
+    end
+
     return homeTab
 end
-
 return Nova
