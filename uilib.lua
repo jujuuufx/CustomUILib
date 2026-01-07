@@ -1,6 +1,4 @@
--- [Sev.cc] UI Library (Buster)
--- Layout-focused rebuild to match the provided screenshot
-local Buster = {}
+local Nova = {}
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
@@ -196,12 +194,12 @@ local function createDivider(parent)
     div.Parent = parent
     return div
 end
-function Buster:CreateWindow(options)
+function Nova:CreateWindow(options)
     options = options or {}
-    local titleText = options.Name or "Sev.cc"
-    local subtitleText = options.Subtitle or "The Bronx"
+    local titleText = options.Name or "Nova UI"
+    local subtitleText = options.Subtitle or ""
     local footerText = options.Footer or subtitleText
-    local brandText = options.BrandText or "S"
+    local brandText = options.BrandText or "N"
     local brandImage = options.BrandImage
     local brandImageSize = options.BrandImageSize or 18
     local forcedSize = options.Size
@@ -226,7 +224,7 @@ function Buster:CreateWindow(options)
         return 860, 480
     end
     local screen = Instance.new("ScreenGui")
-    screen.Name = "Buster"
+    screen.Name = "Nova"
     screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     screen.ResetOnSpawn = false
     safeParentGui(screen)
@@ -1373,7 +1371,7 @@ function Buster:CreateWindow(options)
         -- Add more if needed, or implement bindColor as planned for comprehensive update
     end
     if enableHome then
-        Buster:CreateHomeTab(window, homeOpts)
+        Nova:CreateHomeTab(window, homeOpts)
     end
     if enableSettings then
         do
@@ -1428,7 +1426,7 @@ function Buster:CreateWindow(options)
     end)
     return window
 end
-function Buster:CreateHomeTab(window, options)
+function Nova:CreateHomeTab(window, options)
     local icon = options.Icon
     local backdrop = options.Backdrop
     local discordInvite = options.DiscordInvite
@@ -1464,7 +1462,7 @@ function Buster:CreateHomeTab(window, options)
     if discordInvite then
         infoPanel:CreateButton({Name = "Join Discord", Callback = function()
             local invite = discordInvite
-            local clip = invite:match("http") and invite or "https://discord.gg/" .. invite
+            local clip = invite:match("http") and invite or "<https://discord.gg/>" .. invite
             local success, err = pcall(setclipboard, clip)
             if success then
                 window:Notify({Title = "Success", Text = "Copied Discord invite to clipboard", Duration = 3})
@@ -1494,6 +1492,4 @@ function Buster:CreateHomeTab(window, options)
     end
     return homeTab
 end
--- Backward compatibility: some scripts may still expect "BronxUI"
-Buster.BronxUI = Buster
-return Buster
+return Nova
