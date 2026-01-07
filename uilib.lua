@@ -1668,14 +1668,12 @@ function Nova:CreateHomeTab(window, options)
     overlay.ZIndex = -1
     local userPanel = homeTab:CreatePanel({Column = "Left", Title = "User Information"})
     -- Add user avatar for visual appeal
-    local avatarImage = Instance.new("ImageLabel")  -- Assuming the library allows custom instances, or integrate via CreateElement if available
-    avatarImage.Size = UDim2.new(0, 100, 0, 100)  -- Adjust size as needed
+    local avatarImage = Instance.new("ImageLabel")
+    avatarImage.Size = UDim2.new(1, 0, 0, 100)  -- Full width for better layout
     avatarImage.Image = userThumbnail
     avatarImage.BackgroundTransparency = 1
     avatarImage.ScaleType = Enum.ScaleType.Fit
-    -- If the library has CreateImage, use that; otherwise, assume manual parenting
-    -- For now, assuming we can parent it to userPanel's content frame (hypothetical)
-    -- userPanel:AddElement(avatarImage)  -- Pseudo-code; adjust based on actual library
+    avatarImage.Parent = userPanel.Body  -- Parent to body to integrate into layout
     userPanel:CreateLabel("Welcome, " .. (LocalPlayer.DisplayName or "Unknown") .. "!")  -- Added welcome message
     userPanel:CreateLabel("Display Name: " .. (LocalPlayer.DisplayName or "Unknown"))
     userPanel:CreateLabel("Username: " .. (LocalPlayer.Name or "Unknown"))
@@ -1705,11 +1703,11 @@ function Nova:CreateHomeTab(window, options)
     local gamePanel = homeTab:CreatePanel({Column = "Right", Title = "Game Information"})
     -- Add game icon for visual appeal
     local gameIconImage = Instance.new("ImageLabel")
-    gameIconImage.Size = UDim2.new(0, 100, 0, 100)
+    gameIconImage.Size = UDim2.new(1, 0, 0, 100)
     gameIconImage.Image = "rbxassetid://" .. gameIcon
     gameIconImage.BackgroundTransparency = 1
     gameIconImage.ScaleType = Enum.ScaleType.Fit
-    -- Similarly, parent to gamePanel
+    gameIconImage.Parent = gamePanel.Body
     gamePanel:CreateLabel("Game Name: " .. gameName)
     gamePanel:CreateLabel("Place ID: " .. game.PlaceId)
     gamePanel:CreateLabel("Job ID: " .. game.JobId)
