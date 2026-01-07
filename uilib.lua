@@ -1300,6 +1300,197 @@ function Nova:CreateWindow(options)
                 end
                 return textbox
             end
+            function panel:CreateColorPicker(opt)
+                opt = opt or {}
+                local nameText = opt.Name or "Color Picker"
+                local default = opt.Default or Color3.new(1, 1, 1)
+                local cb = opt.Callback or function() end
+                local wrap = Instance.new("Frame")
+                wrap.BackgroundTransparency = 1
+                wrap.Size = UDim2.new(1, 0, 0, 200)  -- Approximate height
+                wrap.Parent = body
+                local titleRow = createRow(wrap, 18)
+                local lbl = createText(titleRow, nameText, 12, false, "Text")
+                lbl.Size = UDim2.new(1, -30, 1, 0)
+                local preview = Instance.new("Frame")
+                preview.Size = UDim2.new(0, 22, 0, 22)
+                preview.Position = UDim2.new(1, -22, 0, -2)
+                preview.BackgroundColor3 = default
+                preview.Parent = titleRow
+                applyCorner(preview, 6)
+                applyStroke(preview, "StrokeSoft", 0.4)
+                -- Color picker components
+                local pickerBody = Instance.new("Frame")
+                pickerBody.BackgroundTransparency = 1
+                pickerBody.Size = UDim2.new(1, 0, 0, 170)
+                pickerBody.Position = UDim2.new(0, 0, 0, 24)
+                pickerBody.Parent = wrap
+                -- SV square
+                local svSquare = Instance.new("Frame")
+                svSquare.Size = UDim2.new(1, -50, 0, 120)
+                svSquare.BackgroundColor3 = Color3.new(1, 0, 0)  -- Initial hue
+                svSquare.Parent = pickerBody
+                applyCorner(svSquare, 6)
+                applyStroke(svSquare, "StrokeSoft", 0.4)
+                local svGradientH = Instance.new("UIGradient")
+                svGradientH.Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(0, 0, 0))
+                svGradientH.Rotation = 0
+                svGradientH.Parent = svSquare
+                local svGradientV = Instance.new("UIGradient")
+                svGradientV.Transparency = NumberSequence.new(0, 1)
+                svGradientV.Rotation = 90
+                svGradientV.Parent = svSquare
+                local svCursor = Instance.new("Frame")
+                svCursor.Size = UDim2.new(0, 8, 0, 8)
+                svCursor.BackgroundColor3 = Color3.new(1, 1, 1)
+                svCursor.BorderSizePixel = 0
+                svCursor.AnchorPoint = Vector2.new(0.5, 0.5)
+                svCursor.Parent = svSquare
+                applyCorner(svCursor, 4)
+                applyStroke(svCursor, "Stroke", 0)
+                -- Hue slider
+                local hueSlider = Instance.new("Frame")
+                hueSlider.Size = UDim2.new(0, 30, 0, 120)
+                hueSlider.Position = UDim2.new(1, -40, 0, 0)
+                hueSlider.Parent = pickerBody
+                applyCorner(hueSlider, 6)
+                applyStroke(hueSlider, "StrokeSoft", 0.4)
+                local hueGradient = Instance.new("UIGradient")
+                hueGradient.Color = ColorSequence.new{
+                    ColorSequenceKeypoint.new(0, Color3.new(1, 0, 0)),
+                    ColorSequenceKeypoint.new(0.167, Color3.new(1, 1, 0)),
+                    ColorSequenceKeypoint.new(0.333, Color3.new(0, 1, 0)),
+                    ColorSequenceKeypoint.new(0.5, Color3.new(0, 1, 1)),
+                    ColorSequenceKeypoint.new(0.667, Color3.new(0, 0, 1)),
+                    ColorSequenceKeypoint.new(0.833, Color3.new(1, 0, 1)),
+                    ColorSequenceKeypoint.new(1, Color3.new(1, 0, 0))
+                }
+                hueGradient.Rotation = 90
+                hueGradient.Parent = hueSlider
+                local hueKnob = Instance.new("Frame")
+                hueKnob.Size = UDim2.new(1, 0, 0, 4)
+                hueKnob.BackgroundColor3 = Color3.new(1, 1, 1)
+                hueKnob.Parent = hueSlider
+                applyStroke(hueKnob, "Stroke", 0)
+                -- RGB labels
+                local rgbRow = createRow(pickerBody, 30)
+                rgbRow.Position = UDim2.new(0, 0, 0, 130)
+                local rLabel = createText(rgbRow, "R: " .. math.floor(default.R * 255), 12, false, "Text")
+                rLabel.Size = UDim2.new(0.33, 0, 1, 0)
+                local gLabel = createText(rgbRow, "G: " .. math.floor(default.G * 255), 12, false, "Text")
+                gLabel.Size = UDim2.new(0.33, 0, 1, 0)
+                gLabel.Position = UDim2.new(0.33, 0, 0, 0)
+                local bLabel = createText(rgbRow, "B: " .. math.floor(default.B * 255), 12, false, "Text")
+                bLabel.Size = UDim2.new(0.33, 0, 1, 0)
+                bLabel.Position = UDim2.new(0.66, 0, 0, 0)
+                -- Logic
+                local currentColor = default
+                local hue = 0
+                local sat = 1
+                local val = 1
+                local function rgbToHsv(color)
+                    local r, g, b = color.R, color.G, color.B
+                    local maxVal = math.max(r, g, b)
+                    local minVal = math.min(r, g, b)
+                    local delta = maxVal - minVal
+                    local h = 0
+                    if delta ~= 0 then
+                        if maxVal == r then
+                            h = (g - b) / delta % 6
+                        elseif maxVal == g then
+                            h = (b - r) / delta + 2
+                        else
+                            h = (r - g) / delta + 4
+                        end
+                        h = h / 6
+                    end
+                    local s = maxVal == 0 and 0 or delta / maxVal
+                    local v = maxVal
+                    return h, s, v
+                end
+                hue, sat, val = rgbToHsv(default)
+                local function updatePreview()
+                    preview.BackgroundColor3 = currentColor
+                    rLabel.Text = "R: " .. math.floor(currentColor.R * 255)
+                    gLabel.Text = "G: " .. math.floor(currentColor.G * 255)
+                    bLabel.Text = "B: " .. math.floor(currentColor.B * 255)
+                    pcall(cb, currentColor)
+                end
+                local function updateFromHSV()
+                    local color = Color3.fromHSV(hue, sat, val)
+                    currentColor = color
+                    svSquare.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
+                    updatePreview()
+                end
+                local function updateHue(y)
+                    local pct = math.clamp(1 - (y - hueSlider.AbsolutePosition.Y) / hueSlider.AbsoluteSize.Y, 0, 1)
+                    hue = pct
+                    hueKnob.Position = UDim2.new(0, 0, pct, 0)
+                    updateFromHSV()
+                end
+                local function updateSV(pos)
+                    local x = math.clamp((pos.X - svSquare.AbsolutePosition.X) / svSquare.AbsoluteSize.X, 0, 1)
+                    local y = math.clamp(1 - (pos.Y - svSquare.AbsolutePosition.Y) / svSquare.AbsoluteSize.Y, 0, 1)
+                    sat = x
+                    val = y
+                    svCursor.Position = UDim2.new(x, 0, 1 - y, 0)
+                    updateFromHSV()
+                end
+                -- Initial positions
+                hueKnob.Position = UDim2.new(0, 0, 1 - hue, 0)
+                svCursor.Position = UDim2.new(sat, 0, 1 - val, 0)
+                svSquare.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
+                updatePreview()
+                -- Interactions
+                local hueDragging = false
+                hueSlider.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        hueDragging = true
+                        updateHue(input.Position.Y)
+                    end
+                end)
+                hueSlider.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        hueDragging = false
+                    end
+                end)
+                UserInputService.InputChanged:Connect(function(input)
+                    if hueDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        updateHue(input.Position.Y)
+                    end
+                end)
+                local svDragging = false
+                svSquare.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        svDragging = true
+                        updateSV(input.Position)
+                    end
+                end)
+                svSquare.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        svDragging = false
+                    end
+                end)
+                UserInputService.InputChanged:Connect(function(input)
+                    if svDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        updateSV(input.Position)
+                    end
+                end)
+                local colorPicker = {
+                    SetValue = function(_, color)
+                        currentColor = color
+                        hue, sat, val = rgbToHsv(color)
+                        updateFromHSV()
+                    end,
+                    GetValue = function()
+                        return currentColor
+                    end
+                }
+                if opt.ConfigKey then
+                    window._configElements[opt.ConfigKey] = {Element = colorPicker}
+                end
+                return colorPicker
+            end
             -- Back-compat alias
             panel.CreateButton = panel.CreateButton
             return panel
@@ -1429,100 +1620,101 @@ function Nova:CreateWindow(options)
     if enableHome then
         Nova:CreateHomeTab(window, homeOpts)
     end
-    if enableSettings then
+    if enableSettings or enableConfig then
         local settingsTab = window:CreateTab("Settings")
-        local panel = settingsTab:CreatePanel({ Column = "Left", Title = "Settings" })
-        panel:CreateKeybind({
-            Name = "Toggle UI Key",
-            Default = defaultToggleKey,
-            ConfigKey = "ToggleUIKey",
-            Callback = function(key)
-                if typeof(key) == "EnumItem" then
-                    window:SetToggleKey(key)
-                    window:Notify({ Title = titleText, Text = "Toggle key set to " .. key.Name, Duration = 1.5 })
-                elseif key == nil then
-                    window:SetToggleKey(nil)
-                    window:Notify({ Title = titleText, Text = "Toggle key cleared", Duration = 1.5 })
+        if enableSettings then
+            local panel = settingsTab:CreatePanel({ Column = "Left", Title = "UI Settings" })
+            panel:CreateKeybind({
+                Name = "Toggle UI Key",
+                Default = defaultToggleKey,
+                ConfigKey = "ToggleUIKey",
+                Callback = function(key)
+                    if typeof(key) == "EnumItem" then
+                        window:SetToggleKey(key)
+                        window:Notify({ Title = titleText, Text = "Toggle key set to " .. key.Name, Duration = 1.5 })
+                    elseif key == nil then
+                        window:SetToggleKey(nil)
+                        window:Notify({ Title = titleText, Text = "Toggle key cleared", Duration = 1.5 })
+                    end
+                end,
+            })
+            panel:CreateDropdown({
+                Name = "Theme",
+                List = {"Dark", "Light"},
+                Default = "Dark",
+                ConfigKey = "Theme",
+                Callback = function(selected)
+                    window:ApplyTheme(selected)
                 end
-            end,
-        })
-        panel:CreateDropdown({
-            Name = "Theme",
-            List = {"Dark", "Light"},
-            Default = "Dark",
-            ConfigKey = "Theme",
-            Callback = function(selected)
-                window:ApplyTheme(selected)
-            end
-        })
-    end
-    if enableConfig then
-        local configTab = window:CreateTab("Config")
-        local leftPanel = configTab:CreatePanel({Title = "Configuration"})
-        local configName = leftPanel:CreateTextbox({Name = "Config Name", Default = "Default"})
-        local configsDropdown = leftPanel:CreateDropdown({
-            Name = "Existing Configs",
-            List = {},
-            Callback = function(selected)
-                configName:SetValue(selected)
-            end
-        })
-        local refreshBtn = leftPanel:CreateButton({Name = "Refresh List", Callback = function()
-            local folder = "NovaConfigs/" .. tostring(game.PlaceId)
-            local list = {}
-            if isfolder and isfolder(folder) then
-                local files = listfiles(folder)
-                for _, f in ipairs(files) do
-                    local fn = f:match(".+/(.-)%.json$")
-                    if fn then
-                        table.insert(list, fn)
+            })
+        end
+        if enableConfig then
+            local configPanel = settingsTab:CreatePanel({Column = "Right", Title = "Configuration"})
+            local configName = configPanel:CreateTextbox({Name = "Config Name", Default = "Default"})
+            local configsDropdown = configPanel:CreateDropdown({
+                Name = "Existing Configs",
+                List = {},
+                Callback = function(selected)
+                    configName:SetValue(selected)
+                end
+            })
+            local refreshBtn = configPanel:CreateButton({Name = "Refresh List", Callback = function()
+                local folder = "NovaConfigs/" .. tostring(game.PlaceId)
+                local list = {}
+                if isfolder and isfolder(folder) then
+                    local files = listfiles(folder)
+                    for _, f in ipairs(files) do
+                        local fn = f:match(".+/(.-)%.json$")
+                        if fn then
+                            table.insert(list, fn)
+                        end
                     end
                 end
-            end
-            configsDropdown:UpdateList(list)
-        end})
-        local saveBtn = leftPanel:CreateButton({Name = "Save Config", Callback = function()
-            local name = configName:GetValue()
-            local data = {}
-            for key, info in pairs(window._configElements) do
-                data[key] = info.Element:GetValue()
-            end
-            local json = HttpService:JSONEncode(data)
-            local folder = "NovaConfigs/" .. tostring(game.PlaceId)
-            if makefolder and not isfolder(folder) then
-                makefolder(folder)
-            end
-            if writefile then
-                writefile(folder .. "/" .. name .. ".json", json)
-                window:Notify({Title = "Config", Text = "Saved config " .. name})
-            end
-        end})
-        local loadBtn = leftPanel:CreateButton({Name = "Load Config", Callback = function()
-            local name = configName:GetValue()
-            local folder = "NovaConfigs/" .. tostring(game.PlaceId)
-            local file = folder .. "/" .. name .. ".json"
-            if isfile and isfile(file) then
-                local json = readfile(file)
-                local data = HttpService:JSONDecode(json)
-                for key, value in pairs(data) do
-                    local info = window._configElements[key]
-                    if info then
-                        info.Element:SetValue(value)
-                    end
+                configsDropdown:UpdateList(list)
+            end})
+            local saveBtn = configPanel:CreateButton({Name = "Save Config", Callback = function()
+                local name = configName:GetValue()
+                local data = {}
+                for key, info in pairs(window._configElements) do
+                    data[key] = info.Element:GetValue()
                 end
-                window:Notify({Text = "Loaded config " .. name})
-            else
-                window:Notify({Text = "Config " .. name .. " not found"})
-            end
-        end})
-        local deleteBtn = leftPanel:CreateButton({Name = "Delete Config", Callback = function()
-            local name = configName:GetValue()
-            local file = "NovaConfigs/" .. tostring(game.PlaceId) .. "/" .. name .. ".json"
-            if isfile and isfile(file) then
-                delfile(file)
-                window:Notify({Text = "Deleted " .. name})
-            end
-        end})
+                local json = HttpService:JSONEncode(data)
+                local folder = "NovaConfigs/" .. tostring(game.PlaceId)
+                if makefolder and not isfolder(folder) then
+                    makefolder(folder)
+                end
+                if writefile then
+                    writefile(folder .. "/" .. name .. ".json", json)
+                    window:Notify({Title = "Config", Text = "Saved config " .. name})
+                end
+            end})
+            local loadBtn = configPanel:CreateButton({Name = "Load Config", Callback = function()
+                local name = configName:GetValue()
+                local folder = "NovaConfigs/" .. tostring(game.PlaceId)
+                local file = folder .. "/" .. name .. ".json"
+                if isfile and isfile(file) then
+                    local json = readfile(file)
+                    local data = HttpService:JSONDecode(json)
+                    for key, value in pairs(data) do
+                        local info = window._configElements[key]
+                        if info then
+                            info.Element:SetValue(value)
+                        end
+                    end
+                    window:Notify({Text = "Loaded config " .. name})
+                else
+                    window:Notify({Text = "Config " .. name .. " not found"})
+                end
+            end})
+            local deleteBtn = configPanel:CreateButton({Name = "Delete Config", Callback = function()
+                local name = configName:GetValue()
+                local file = "NovaConfigs/" .. tostring(game.PlaceId) .. "/" .. name .. ".json"
+                if isfile and isfile(file) then
+                    delfile(file)
+                    window:Notify({Text = "Deleted " .. name})
+                end
+            end})
+        end
     end
     -- Global keybind to open/close UI
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
