@@ -220,7 +220,7 @@ function Nova:CreateWindow(options)
     local brandImageSize = options.BrandImageSize or 18
     local forcedSize = options.Size
     local enableGroups = options.Groups == true
-    local defaultToggleKey = options.ToggleKey or Enum.KeyCode.RightShift
+    local defaultToggleKey = options.ToggleKey or Enum.KeyCode.LeftAlt
     local enableHome = options.Home ~= false
     local homeOpts = typeof(options.Home) == "table" and options.Home or {}
     local enableSettings = options.Settings ~= false
