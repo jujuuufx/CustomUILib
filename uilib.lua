@@ -314,7 +314,7 @@ function Nova:CreateWindow(options)
             main.Size = UDim2.new(0, newWidth, 0, newHeight)
         end
     end)
-    -- Top bar
+        -- Top bar
     local top = Instance.new("Frame")
     top.Name = "TopBar"
     top.Size = UDim2.new(1, 0, 0, 52)
@@ -455,9 +455,9 @@ function Nova:CreateWindow(options)
             savedSize = main.Size
             savedPos = main.Position
             local viewport = Camera.ViewportSize
-            local insetY = getInsetY()
-            main.Position = UDim2.new(0, 0, 0, insetY)
-            main.Size = UDim2.new(1, 0, 1, -insetY)
+            local topLeft, bottomRight = GuiService:GetGuiInset()
+            main.Position = UDim2.new(0, topLeft.X, 0, topLeft.Y)
+            main.Size = UDim2.new(1, -topLeft.X - bottomRight.X, 1, -topLeft.Y - bottomRight.Y)
         else
             main.Size = savedSize
             main.Position = savedPos
