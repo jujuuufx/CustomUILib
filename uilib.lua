@@ -987,18 +987,21 @@ function Nova:CreateWindow(options)
                 track.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                         dragging = true
-                        dragInput = input
                         updateFromX(input.Position.X)
+                        local connection = input.Changed:Connect(function()
+                            if input.UserInputState == Enum.UserInputState.End then
+                                dragging = false
+                            end
+                        end)
                     end
                 end)
-                track.InputEnded:Connect(function(input)
-                    if input == dragInput and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-                        dragging = false
-                        dragInput = nil
+                track.InputChanged:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                        dragInput = input
                     end
                 end)
                 UserInputService.InputChanged:Connect(function(input)
-                    if dragging and dragInput and input == dragInput then
+                    if input == dragInput and dragging then
                         updateFromX(input.Position.X)
                     end
                 end)
