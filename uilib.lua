@@ -1633,21 +1633,11 @@ function Nova:CreateHomeTab(window, options)
     elseif getexecutorname then
         executor = getexecutorname()
     end
-    local LocalPlayer = game:GetService("Players").LocalPlayer
     local gameName = "Unknown"
-    local gameIcon = "0"
-    local gameCreator = "Unknown"
     pcall(function()
-        local productInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
-        gameName = productInfo.Name
-        gameIcon = productInfo.IconImageAssetId or "0"
-        gameCreator = productInfo.Creator.Name or "Unknown"
+        gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
     end)
     local playersService = game:GetService("Players")
-    local thumbnailService = game:GetService("ThumbnailGenerator")
-    local userThumbnail, isReady = playersService:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size180x180)
-    local accountAge = LocalPlayer.AccountAge
-    local membership = tostring(LocalPlayer.MembershipType):gsub("Enum.MembershipType.", "")
     local homeTab = window:CreateTab({Name = "Home", Icon = icon})
     local content = homeTab._content
     local bgImage = Instance.new("ImageLabel")
@@ -1657,43 +1647,16 @@ function Nova:CreateHomeTab(window, options)
     bgImage.ScaleType = Enum.ScaleType.Fit
     bgImage.Parent = content
     bgImage.ZIndex = -1
-    -- Add a subtle overlay for better readability
-    local overlay = Instance.new("Frame")
-    overlay.BackgroundColor3 = Color3.new(0, 0, 0)
-    overlay.BackgroundTransparency = 0.7
-    overlay.Size = UDim2.new(1, 0, 1, 0)
-    overlay.Parent = content
-    overlay.ZIndex = -1
-    -- Welcome message at the top
-    local welcomePanel = homeTab:CreatePanel({Column = "Left", Title = "Welcome"})
-    welcomePanel:CreateLabel("Welcome back, " .. (LocalPlayer.DisplayName or "User") .. "!")
-    welcomePanel:CreateLabel("Enjoy using Nova in " .. gameName .. ".")
-    welcomePanel:Divider()
     local userPanel = homeTab:CreatePanel({Column = "Left", Title = "User Information"})
-    -- Add user avatar
-    if isReady then
-        local avatarImage = Instance.new("ImageLabel")
-        avatarImage.BackgroundTransparency = 1
-        avatarImage.Size = UDim2.new(0, 100, 0, 100)  -- Adjust size as needed
-        avatarImage.Image = userThumbnail
-        avatarImage.Parent = userPanel._content  -- Assuming _content is the frame; adjust if needed
-        avatarImage.Position = UDim2.new(0.5, -50, 0, 10)  -- Center it
-    end
     userPanel:CreateLabel("Display Name: " .. (LocalPlayer.DisplayName or "Unknown"))
     userPanel:CreateLabel("Username: " .. (LocalPlayer.Name or "Unknown"))
     userPanel:CreateLabel("User ID: " .. (LocalPlayer.UserId or "Unknown"))
-    userPanel:CreateButton({Name = "Copy User ID", Callback = function()
-        setclipboard(tostring(LocalPlayer.UserId))
-        window:Notify({Title = "Success", Text = "Copied User ID to clipboard", Duration = 3})
-    end})
-    userPanel:CreateLabel("Account Age: " .. accountAge .. " days")
-    userPanel:CreateLabel("Membership: " .. membership)
     userPanel:CreateLabel("Executor: " .. executor)
-    local infoPanel = homeTab:CreatePanel({Column = "Left", Title = "Info & Support"})
+    local infoPanel = homeTab:CreatePanel({Column = "Left", Title = "Info"})
     if discordInvite then
         infoPanel:CreateButton({Name = "Join Discord", Callback = function()
             local invite = discordInvite
-            local clip = invite:match("http") and invite or "https://discord.gg/" .. invite
+            local clip = invite:match("http") and invite or "<https://discord.gg/>" .. invite
             local success, err = pcall(setclipboard, clip)
             if success then
                 window:Notify({Title = "Success", Text = "Copied Discord invite to clipboard", Duration = 3})
@@ -1704,55 +1667,23 @@ function Nova:CreateHomeTab(window, options)
     end
     infoPanel:CreateLabel("Supported Executors:")
     for _, exec in ipairs(supported) do
-        infoPanel:CreateLabel("- " .. exec)
+        infoPanel:CreateLabel(exec)
     end
     infoPanel:CreateLabel("Unsupported Executors:")
     for _, exec in ipairs(unsupported) do
-        infoPanel:CreateLabel("- " .. exec)
+        infoPanel:CreateLabel(exec)
     end
-    infoPanel:Divider()
-    infoPanel:CreateLabel("Quick Tips:")
-    infoPanel:CreateLabel("- Use the search bar in other tabs to find scripts quickly.")
-    infoPanel:CreateLabel("- Report bugs via Discord.")
     local gamePanel = homeTab:CreatePanel({Column = "Right", Title = "Game Information"})
-    -- Add game icon
-    local gameImage = Instance.new("ImageLabel")
-    gameImage.BackgroundTransparency = 1
-    gameImage.Size = UDim2.new(0, 100, 0, 100)
-    gameImage.Image = "rbxassetid://" .. gameIcon
-    gameImage.Parent = gamePanel._content
-    gameImage.Position = UDim2.new(0.5, -50, 0, 10)
     gamePanel:CreateLabel("Game Name: " .. gameName)
-    gamePanel:CreateLabel("Creator: " .. gameCreator)
     gamePanel:CreateLabel("Place ID: " .. game.PlaceId)
-    gamePanel:CreateButton({Name = "Copy Place ID", Callback = function()
-        setclipboard(tostring(game.PlaceId))
-        window:Notify({Title = "Success", Text = "Copied Place ID to clipboard", Duration = 3})
-    end})
     gamePanel:CreateLabel("Job ID: " .. game.JobId)
-    gamePanel:CreateButton({Name = "Copy Job ID", Callback = function()
-        setclipboard(game.JobId)
-        window:Notify({Title = "Success", Text = "Copied Job ID to clipboard", Duration = 3})
-    end})
     gamePanel:CreateLabel("Players: " .. #playersService:GetPlayers() .. "/" .. playersService.MaxPlayers)
-    gamePanel:CreateButton({Name = "Refresh Player Count", Callback = function()
-        local count = #playersService:GetPlayers()
-        window:Notify({Title = "Updated", Text = "Current players: " .. count .. "/" .. playersService.MaxPlayers, Duration = 3})
-        -- Note: To actually update the label, you'd need to reference and update it dynamically, but for simplicity, just notify.
-    end})
     local changePanel = homeTab:CreatePanel({Column = "Right", Title = "Changelog"})
-    for i, entry in ipairs(changelog) do
-        changePanel:CreateLabel((entry.Title or "Update " .. i) .. " - " .. (entry.Date or "Unknown"))
-        changePanel:CreateLabel(entry.Description or "No description provided.")
-        if i < #changelog then
-            changePanel:Divider()
-        end
+    for _, entry in ipairs(changelog) do
+        changePanel:CreateLabel((entry.Title or "Update") .. " - " .. (entry.Date or "Unknown"))
+        changePanel:CreateLabel(entry.Description or "")
+        changePanel:Divider()
     end
-    -- Add a credits section
-    local creditsPanel = homeTab:CreatePanel({Column = "Right", Title = "Credits"})
-    creditsPanel:CreateLabel("Developed by Havez using Buster Ui as a base credits to Jurkyy")
-    creditsPanel:CreateLabel("UI Library: Nova")
-    creditsPanel:CreateLabel("Thanks to the community!")
     return homeTab
 end
 
