@@ -83,16 +83,19 @@ local function applyStroke(instance, colorKey, transparency)
     return s
 end
 
+
+local UserInputService = game:GetService("UserInputService")
+
 local function makeDraggable(frame, handle)
-    handle = handle or frame
     local dragging = false
-    local startPos
-    local startInputPos
+    local dragInput, mousePos, framePos
+
     handle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
-            startInputPos = input.Position
-            startPos = frame.Position
+            mousePos = input.Position
+            framePos = frame.Position
+
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
@@ -100,13 +103,21 @@ local function makeDraggable(frame, handle)
             end)
         end
     end)
+
+    handle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
     UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - startInputPos
-            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        if input == dragInput and dragging then
+            local delta = input.Position - mousePos
+            frame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
         end
     end)
 end
+
 
 local function truncateWithStars(text, maxChars)
     text = tostring(text or "")
