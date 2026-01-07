@@ -7,7 +7,6 @@ local GuiService = game:GetService("GuiService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local HttpService = game:GetService("HttpService")
-
 local function getInsetY()
     local insetY = 0
     pcall(function()
@@ -16,7 +15,6 @@ local function getInsetY()
     end)
     return insetY
 end
-
 local Theme = {
     Bg = Color3.fromRGB(14, 15, 18),
     Top = Color3.fromRGB(18, 19, 23),
@@ -35,7 +33,6 @@ local Theme = {
     NeutralButtonHover = Color3.fromRGB(100, 100, 100),
     CloseButtonHover = Color3.fromRGB(200, 50, 60),
 }
-
 local Themes = {
     Dark = Theme,
     Light = {
@@ -57,23 +54,19 @@ local Themes = {
         CloseButtonHover = Color3.fromRGB(200, 50, 60),
     },
 }
-
 -- OldUI button colors (from oldui.lua default theme) now integrated into Theme
-
 local function tween(instance, properties, duration)
     duration = duration or 0.18
     local t = TweenService:Create(instance, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), properties)
     t:Play()
     return t
 end
-
 local function applyCorner(instance, radius)
     local c = Instance.new("UICorner")
     c.CornerRadius = UDim.new(0, radius)
     c.Parent = instance
     return c
 end
-
 local function applyStroke(instance, colorKey, transparency)
     local s = Instance.new("UIStroke")
     s.Thickness = 1
@@ -82,7 +75,6 @@ local function applyStroke(instance, colorKey, transparency)
     s.Parent = instance
     return s
 end
-
 local function makeDraggable(frame, handle)
     handle = handle or frame
     local dragging = false
@@ -113,7 +105,6 @@ local function makeDraggable(frame, handle)
         end
     end)
 end
-
 local function truncateWithStars(text, maxChars)
     text = tostring(text or "")
     maxChars = maxChars or 24
@@ -125,7 +116,6 @@ local function truncateWithStars(text, maxChars)
     end
     return string.sub(text, 1, maxChars - 2) .. "**"
 end
-
 local function safeParentGui(gui)
     if syn and syn.protect_gui then
         pcall(function()
@@ -140,7 +130,6 @@ local function safeParentGui(gui)
     end
     gui.Parent = CoreGui
 end
-
 local function createRow(parent, height)
     local row = Instance.new("Frame")
     row.BackgroundTransparency = 1
@@ -149,7 +138,6 @@ local function createRow(parent, height)
     row.Parent = parent
     return row
 end
-
 local function createText(parent, text, size, bold, colorKey)
     local lbl = Instance.new("TextLabel")
     lbl.BackgroundTransparency = 1
@@ -163,7 +151,6 @@ local function createText(parent, text, size, bold, colorKey)
     lbl.Parent = parent
     return lbl
 end
-
 local function createSquareToggle(parent, default, callback)
     local btn = Instance.new("TextButton")
     btn.AutoButtonColor = false
@@ -198,7 +185,6 @@ local function createSquareToggle(parent, default, callback)
         end,
     }
 end
-
 local function createDivider(parent)
     local div = Instance.new("Frame")
     div.BorderSizePixel = 0
@@ -209,7 +195,6 @@ local function createDivider(parent)
     div.Parent = parent
     return div
 end
-
 function Nova:CreateWindow(options)
     options = options or {}
     local titleText = options.Name or "Nova UI"
@@ -225,7 +210,6 @@ function Nova:CreateWindow(options)
     local homeOpts = typeof(options.Home) == "table" and options.Home or {}
     local enableSettings = options.Settings ~= false
     local enableConfig = options.Config ~= false
-
     local function computeWindowSize()
         if forcedSize and forcedSize.Width and forcedSize.Height then
             return forcedSize.Width, forcedSize.Height
@@ -241,13 +225,11 @@ function Nova:CreateWindow(options)
         end
         return 860, 480
     end
-
     local screen = Instance.new("ScreenGui")
     screen.Name = "Nova"
     screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     screen.ResetOnSpawn = false
     safeParentGui(screen)
-
     -- Overlay layer (used by dropdowns to stay above everything)
     local overlay = Instance.new("Frame")
     overlay.Name = "Overlay"
@@ -258,7 +240,6 @@ function Nova:CreateWindow(options)
     overlay.ZIndex = 10_000
     overlay.Visible = true
     overlay.Parent = screen
-
     local main = Instance.new("Frame")
     main.Name = "Main"
     local startW, startH = computeWindowSize()
@@ -270,7 +251,6 @@ function Nova:CreateWindow(options)
     main.Parent = screen
     applyCorner(main, 10)
     applyStroke(main, "Stroke", 0.6)
-
     -- Add resize handle - Made bigger and more noticeable
     local resizeHandle = Instance.new("Frame")
     resizeHandle.Name = "ResizeHandle"
@@ -288,7 +268,6 @@ function Nova:CreateWindow(options)
         line.Rotation = 45
         line.Parent = resizeHandle
     end
-
     local resizing = false
     local startSize
     local startInputPos
@@ -314,7 +293,6 @@ function Nova:CreateWindow(options)
             main.Size = UDim2.new(0, newWidth, 0, newHeight)
         end
     end)
-
     -- Top bar
     local top = Instance.new("Frame")
     top.Name = "TopBar"
@@ -323,14 +301,12 @@ function Nova:CreateWindow(options)
     top.BorderSizePixel = 0
     top.Parent = main
     applyCorner(top, 10)
-
     local topFix = Instance.new("Frame")
     topFix.Size = UDim2.new(1, 0, 0, 14)
     topFix.Position = UDim2.new(0, 0, 1, -14)
     topFix.BackgroundColor3 = Theme.Top
     topFix.BorderSizePixel = 0
     topFix.Parent = top
-
     local topLine = Instance.new("Frame")
     topLine.Size = UDim2.new(1, 0, 0, 1)
     topLine.Position = UDim2.new(0, 0, 1, 0)
@@ -338,7 +314,6 @@ function Nova:CreateWindow(options)
     topLine.BackgroundTransparency = 0.6
     topLine.BorderSizePixel = 0
     topLine.Parent = top
-
     -- Small brand at left
     local brandWrapWidth = brandImageSize + 22
     local brandWrap = Instance.new("Frame")
@@ -347,7 +322,6 @@ function Nova:CreateWindow(options)
     brandWrap.Size = UDim2.new(0, brandWrapWidth, 1, 0)
     brandWrap.Position = UDim2.new(0, 14, 0, 0)
     brandWrap.Parent = top
-
     local brand = Instance.new("TextLabel")
     brand.Name = "BrandText"
     brand.BackgroundTransparency = 1
@@ -359,7 +333,6 @@ function Nova:CreateWindow(options)
     brand.Font = Enum.Font.GothamBold
     brand.TextXAlignment = Enum.TextXAlignment.Left
     brand.Parent = brandWrap
-
     local brandImg = Instance.new("ImageLabel")
     brandImg.Name = "BrandImage"
     brandImg.BackgroundTransparency = 1
@@ -372,7 +345,6 @@ function Nova:CreateWindow(options)
     if brandImg.Visible then
         brand.Visible = false
     end
-
     local title = Instance.new("TextLabel")
     title.BackgroundTransparency = 1
     title.Size = UDim2.new(0, 260, 0, 18)
@@ -383,7 +355,6 @@ function Nova:CreateWindow(options)
     title.Font = Enum.Font.GothamBold
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Parent = top
-
     local subtitle = Instance.new("TextLabel")
     subtitle.BackgroundTransparency = 1
     subtitle.Size = UDim2.new(0, 260, 0, 16)
@@ -394,21 +365,18 @@ function Nova:CreateWindow(options)
     subtitle.Font = Enum.Font.Gotham
     subtitle.TextXAlignment = Enum.TextXAlignment.Left
     subtitle.Parent = top
-
     -- Only 2 small buttons (minimize + close) with oldui.lua colors
     local controls = Instance.new("Frame")
     controls.BackgroundTransparency = 1
     controls.Size = UDim2.new(0, 44, 0, 16)
     controls.Position = UDim2.new(1, -58, 0, 18)
     controls.Parent = top
-
     local controlsLayout = Instance.new("UIListLayout")
     controlsLayout.FillDirection = Enum.FillDirection.Horizontal
     controlsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
     controlsLayout.SortOrder = Enum.SortOrder.LayoutOrder
     controlsLayout.Padding = UDim.new(0, 6)
     controlsLayout.Parent = controls
-
     local minimizeBtn = Instance.new("TextButton")
     minimizeBtn.Name = "Minimize"
     minimizeBtn.AutoButtonColor = false
@@ -419,7 +387,6 @@ function Nova:CreateWindow(options)
     minimizeBtn.LayoutOrder = 1
     minimizeBtn.Parent = controls
     applyCorner(minimizeBtn, 12)
-
     local closeBtn = Instance.new("TextButton")
     closeBtn.Name = "Close"
     closeBtn.AutoButtonColor = false
@@ -430,9 +397,7 @@ function Nova:CreateWindow(options)
     closeBtn.LayoutOrder = 2
     closeBtn.Parent = controls
     applyCorner(closeBtn, 12)
-
     makeDraggable(main, top)
-
     -- Minimize / Close behavior
     local minimized = false
     local function centerTo(w, h)
@@ -465,7 +430,6 @@ function Nova:CreateWindow(options)
     closeBtn.MouseLeave:Connect(function()
         tween(closeBtn, { BackgroundColor3 = Theme.NeutralButton }, 0.12)
     end)
-
     -- Responsive auto-size like oldui.lua (unless a fixed Size is provided)
     if Camera and not forcedSize then
         Camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
@@ -479,7 +443,6 @@ function Nova:CreateWindow(options)
             }, 0.22)
         end)
     end
-
     -- Sidebar
     local sidebar = Instance.new("Frame")
     sidebar.Name = "Sidebar"
@@ -489,7 +452,6 @@ function Nova:CreateWindow(options)
     sidebar.BorderSizePixel = 0
     sidebar.Parent = main
     applyStroke(sidebar, "StrokeSoft", 0.7)
-
     local nav = Instance.new("ScrollingFrame")
     nav.Name = "Nav"
     nav.BackgroundTransparency = 1
@@ -499,13 +461,11 @@ function Nova:CreateWindow(options)
     nav.ScrollBarThickness = 0
     nav.CanvasSize = UDim2.new(0, 0, 0, 0)
     nav.Parent = sidebar
-
     local navPad = Instance.new("UIPadding")
     navPad.PaddingTop = UDim.new(0, 10)
     navPad.PaddingLeft = UDim.new(0, 10)
     navPad.PaddingRight = UDim.new(0, 10)
     navPad.Parent = nav
-
     local navLayout = Instance.new("UIListLayout")
     navLayout.SortOrder = Enum.SortOrder.LayoutOrder
     navLayout.Padding = UDim.new(0, 6)
@@ -513,7 +473,6 @@ function Nova:CreateWindow(options)
     navLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         nav.CanvasSize = UDim2.new(0, 0, 0, navLayout.AbsoluteContentSize.Y + 14)
     end)
-
     -- User profile
     local profile = Instance.new("Frame")
     profile.Name = "Profile"
@@ -523,7 +482,6 @@ function Nova:CreateWindow(options)
     profile.BorderSizePixel = 0
     profile.Parent = sidebar
     applyStroke(profile, "StrokeSoft", 0.7)
-
     local avatar = Instance.new("Frame")
     avatar.Size = UDim2.new(0, 34, 0, 34)
     avatar.Position = UDim2.new(0, 12, 0, 19)
@@ -532,7 +490,6 @@ function Nova:CreateWindow(options)
     avatar.Parent = profile
     applyCorner(avatar, 17)
     applyStroke(avatar, "StrokeSoft", 0.65)
-
     local avatarImg = Instance.new("ImageLabel")
     avatarImg.Name = "AvatarImage"
     avatarImg.BackgroundTransparency = 1
@@ -553,15 +510,12 @@ function Nova:CreateWindow(options)
             end
         end
     end)
-
     local displayName = createText(profile, truncateWithStars((LocalPlayer and LocalPlayer.DisplayName) or "User", 18), 10, true, "Text")
     displayName.Size = UDim2.new(1, -60, 0, 16)
     displayName.Position = UDim2.new(0, 54, 0, 22)
-
     local username = createText(profile, truncateWithStars((LocalPlayer and ("@" .. LocalPlayer.Name)) or "@user", 20), 9, false, "SubText")
     username.Size = UDim2.new(1, -60, 0, 14)
     username.Position = UDim2.new(0, 54, 0, 38)
-
     -- Content area
     local content = Instance.new("Frame")
     content.Name = "Content"
@@ -570,13 +524,11 @@ function Nova:CreateWindow(options)
     content.Size = UDim2.new(1, -176, 1, -52)
     content.Position = UDim2.new(0, 176, 0, 52)
     content.Parent = main
-
     local tabRoot = Instance.new("Frame")
     tabRoot.Name = "TabRoot"
     tabRoot.BackgroundTransparency = 1
     tabRoot.Size = UDim2.new(1, 0, 1, 0)
     tabRoot.Parent = content
-
     local window = {}
     window._screen = screen
     window._main = main
@@ -594,7 +546,6 @@ function Nova:CreateWindow(options)
     window._keybindListening = false
     window._toggleKey = defaultToggleKey
     window._configElements = {}
-
     local function computeSidebarWidth(w)
         if UserInputService.TouchEnabled then
             if w < 680 then
@@ -606,7 +557,6 @@ function Nova:CreateWindow(options)
         end
         return 176
     end
-
     local function applySubLayout()
         local w = main.Size.X.Offset
         local sidebarW = computeSidebarWidth(w)
@@ -619,7 +569,6 @@ function Nova:CreateWindow(options)
             end
         end
     end
-
     applySubLayout()
     main:GetPropertyChangedSignal("Size"):Connect(function()
         if minimized then
@@ -627,7 +576,6 @@ function Nova:CreateWindow(options)
         end
         applySubLayout()
     end)
-
     function window:AddGroup(name)
         if not window._enableGroups then
             window._currentGroup = name
@@ -645,7 +593,6 @@ function Nova:CreateWindow(options)
         window._currentGroup = name
         return header
     end
-
     local function setTabActive(tab, active)
         if not tab or not tab._button then
             return
@@ -664,7 +611,6 @@ function Nova:CreateWindow(options)
             tab._iconTint.ImageColor3 = Theme.SubText
         end
     end
-
     function window:CreateTab(tabOptions)
         local name
         local icon
@@ -862,6 +808,7 @@ function Nova:CreateWindow(options)
             end)
             local panel = {}
             panel.Frame = card
+            panel.Body = body  -- Expose body for custom elements
             function panel:Divider()
                 local dWrap = createRow(body, 6)
                 createDivider(dWrap)
@@ -1371,7 +1318,6 @@ function Nova:CreateWindow(options)
         end
         return tab
     end
-
     -- Notifications (toasts)
     local notifyHost = Instance.new("Frame")
     notifyHost.Name = "Notifications"
@@ -1381,13 +1327,11 @@ function Nova:CreateWindow(options)
     notifyHost.Position = UDim2.new(1, -332, 0, 12)
     notifyHost.ZIndex = 10_100
     notifyHost.Parent = overlay
-
     local notifyLayout = Instance.new("UIListLayout")
     notifyLayout.SortOrder = Enum.SortOrder.LayoutOrder
     notifyLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
     notifyLayout.Padding = UDim.new(0, 8)
     notifyLayout.Parent = notifyHost
-
     function window:Notify(opt)
         opt = opt or {}
         local nTitle = opt.Title or titleText
@@ -1426,7 +1370,6 @@ function Nova:CreateWindow(options)
             end
         end)
     end
-
     function window:Toggle()
         if not main.Visible then
             main.Visible = true
@@ -1440,35 +1383,28 @@ function Nova:CreateWindow(options)
             main.Visible = false
         end
     end
-
     function window:SetTitle(text)
         window._titleLabel.Text = tostring(text)
     end
-
     function window:SetFooter(text)
         window._subtitleLabel.Text = "| " .. tostring(text)
     end
-
     function window:SetBrandText(text)
         window._brandTextLabel.Text = tostring(text)
         window._brandTextLabel.Visible = true
         window._brandImageLabel.Visible = false
     end
-
     function window:SetBrandImage(image)
         window._brandImageLabel.Image = tostring(image or "")
         window._brandImageLabel.Visible = window._brandImageLabel.Image ~= ""
         window._brandTextLabel.Visible = not window._brandImageLabel.Visible
     end
-
     function window:Destroy()
         screen:Destroy()
     end
-
     function window:SetToggleKey(key)
         window._toggleKey = key
     end
-
     function window:ApplyTheme(themeName)
         Theme = Themes[themeName] or Themes.Dark
         -- Update all elements (assuming we replaced assignments with direct Theme references; in practice, refresh colors here if needed)
@@ -1490,11 +1426,9 @@ function Nova:CreateWindow(options)
         username.TextColor3 = Theme.SubText
         -- Add more if needed, or implement bindColor as planned for comprehensive update
     end
-
     if enableHome then
         Nova:CreateHomeTab(window, homeOpts)
     end
-
     if enableSettings then
         local settingsTab = window:CreateTab("Settings")
         local panel = settingsTab:CreatePanel({ Column = "Left", Title = "Settings" })
@@ -1522,7 +1456,6 @@ function Nova:CreateWindow(options)
             end
         })
     end
-
     if enableConfig then
         local configTab = window:CreateTab("Config")
         local leftPanel = configTab:CreatePanel({Title = "Configuration"})
@@ -1591,7 +1524,6 @@ function Nova:CreateWindow(options)
             end
         end})
     end
-
     -- Global keybind to open/close UI
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then
@@ -1616,10 +1548,8 @@ function Nova:CreateWindow(options)
             end
         end
     end)
-
     return window
 end
-
 function Nova:CreateHomeTab(window, options)
     local icon = options.Icon
     local backdrop = options.Backdrop
@@ -1667,14 +1597,21 @@ function Nova:CreateHomeTab(window, options)
     overlay.Parent = content
     overlay.ZIndex = -1
     local userPanel = homeTab:CreatePanel({Column = "Left", Title = "User Information"})
-    -- Add user avatar for visual appeal
+    -- Add user avatar for visual appeal, centered
+    local avatarContainer = Instance.new("Frame")
+    avatarContainer.BackgroundTransparency = 1
+    avatarContainer.Size = UDim2.new(1, 0, 0, 120)
+    avatarContainer.Parent = userPanel.Body
     local avatarImage = Instance.new("ImageLabel")
-    avatarImage.Size = UDim2.new(1, 0, 0, 100)  -- Full width for better layout
+    avatarImage.Size = UDim2.new(0, 100, 0, 100)
+    avatarImage.Position = UDim2.new(0.5, -50, 0, 10)
     avatarImage.Image = userThumbnail
     avatarImage.BackgroundTransparency = 1
     avatarImage.ScaleType = Enum.ScaleType.Fit
-    avatarImage.Parent = userPanel.Body  -- Parent to body to integrate into layout
-    userPanel:CreateLabel("Welcome, " .. (LocalPlayer.DisplayName or "Unknown") .. "!")  -- Added welcome message
+    avatarImage.Parent = avatarContainer
+    applyCorner(avatarImage, 50)  -- Circular avatar
+    applyStroke(avatarImage, "StrokeSoft", 0.3)
+    userPanel:CreateLabel({Text = "Welcome, " .. (LocalPlayer.DisplayName or "Unknown") .. "!", Bold = true, Size = 14, Color = "Accent"})  -- Styled welcome
     userPanel:CreateLabel("Display Name: " .. (LocalPlayer.DisplayName or "Unknown"))
     userPanel:CreateLabel("Username: " .. (LocalPlayer.Name or "Unknown"))
     userPanel:CreateLabel("User ID: " .. (LocalPlayer.UserId or "Unknown"))
@@ -1692,33 +1629,39 @@ function Nova:CreateHomeTab(window, options)
             end
         end})
     end
-    infoPanel:CreateLabel("Supported Executors:")
+    infoPanel:CreateLabel({Text = "Supported Executors:", Bold = true})
     for _, exec in ipairs(supported) do
-        infoPanel:CreateLabel("• " .. exec)  -- Added bullet for better visuals
+        infoPanel:CreateLabel("• " .. exec)
     end
-    infoPanel:CreateLabel("Unsupported Executors:")
+    infoPanel:CreateLabel({Text = "Unsupported Executors:", Bold = true})
     for _, exec in ipairs(unsupported) do
-        infoPanel:CreateLabel("• " .. exec)  -- Added bullet for better visuals
+        infoPanel:CreateLabel("• " .. exec)
     end
     local gamePanel = homeTab:CreatePanel({Column = "Right", Title = "Game Information"})
-    -- Add game icon for visual appeal
+    -- Add game icon for visual appeal, centered
+    local gameIconContainer = Instance.new("Frame")
+    gameIconContainer.BackgroundTransparency = 1
+    gameIconContainer.Size = UDim2.new(1, 0, 0, 120)
+    gameIconContainer.Parent = gamePanel.Body
     local gameIconImage = Instance.new("ImageLabel")
-    gameIconImage.Size = UDim2.new(1, 0, 0, 100)
+    gameIconImage.Size = UDim2.new(0, 100, 0, 100)
+    gameIconImage.Position = UDim2.new(0.5, -50, 0, 10)
     gameIconImage.Image = "rbxassetid://" .. gameIcon
     gameIconImage.BackgroundTransparency = 1
     gameIconImage.ScaleType = Enum.ScaleType.Fit
-    gameIconImage.Parent = gamePanel.Body
+    gameIconImage.Parent = gameIconContainer
+    applyCorner(gameIconImage, 10)  -- Rounded square
+    applyStroke(gameIconImage, "StrokeSoft", 0.3)
     gamePanel:CreateLabel("Game Name: " .. gameName)
     gamePanel:CreateLabel("Place ID: " .. game.PlaceId)
     gamePanel:CreateLabel("Job ID: " .. game.JobId)
     gamePanel:CreateLabel("Players: " .. #playersService:GetPlayers() .. "/" .. playersService.MaxPlayers)
     local changePanel = homeTab:CreatePanel({Column = "Right", Title = "Changelog"})
     for _, entry in ipairs(changelog) do
-        changePanel:CreateLabel((entry.Title or "Update") .. " - " .. (entry.Date or "Unknown"))
+        changePanel:CreateLabel({Text = (entry.Title or "Update") .. " - " .. (entry.Date or "Unknown"), Bold = true})
         changePanel:CreateLabel(entry.Description or "")
         changePanel:Divider()
     end
     return homeTab
 end
-
 return Nova
