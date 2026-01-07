@@ -7,7 +7,6 @@ local GuiService = game:GetService("GuiService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local HttpService = game:GetService("HttpService")
-
 local function getInsetY()
     local insetY = 0
     pcall(function()
@@ -16,7 +15,6 @@ local function getInsetY()
     end)
     return insetY
 end
-
 local Theme = {
     Bg = Color3.fromRGB(14, 15, 18),
     Top = Color3.fromRGB(18, 19, 23),
@@ -35,7 +33,6 @@ local Theme = {
     NeutralButtonHover = Color3.fromRGB(100, 100, 100),
     CloseButtonHover = Color3.fromRGB(200, 50, 60),
 }
-
 local Themes = {
     Dark = Theme,
     Light = {
@@ -57,23 +54,19 @@ local Themes = {
         CloseButtonHover = Color3.fromRGB(200, 50, 60),
     },
 }
-
 -- OldUI button colors (from oldui.lua default theme) now integrated into Theme
-
 local function tween(instance, properties, duration)
     duration = duration or 0.18
     local t = TweenService:Create(instance, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), properties)
     t:Play()
     return t
 end
-
 local function applyCorner(instance, radius)
     local c = Instance.new("UICorner")
     c.CornerRadius = UDim.new(0, radius)
     c.Parent = instance
     return c
 end
-
 local function applyStroke(instance, colorKey, transparency)
     local s = Instance.new("UIStroke")
     s.Thickness = 1
@@ -82,20 +75,15 @@ local function applyStroke(instance, colorKey, transparency)
     s.Parent = instance
     return s
 end
-
-
 local UserInputService = game:GetService("UserInputService")
-
 local function makeDraggable(frame, handle)
     local dragging = false
     local dragInput, mousePos, framePos
-
     handle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             mousePos = input.Position
             framePos = frame.Position
-
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
@@ -103,13 +91,11 @@ local function makeDraggable(frame, handle)
             end)
         end
     end)
-
     handle.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
-
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - mousePos
@@ -117,21 +103,18 @@ local function makeDraggable(frame, handle)
         end
     end)
 end
-
 print("draggable yep yep")
-
-local function truncateWithStars(text, maxChars)
+local function truncateWithEllipsis(text, maxChars)
     text = tostring(text or "")
     maxChars = maxChars or 24
     if #text <= maxChars then
         return text
     end
-    if maxChars <= 2 then
-        return "**"
+    if maxChars <= 3 then
+        return "..."
     end
-    return string.sub(text, 1, maxChars - 2) .. "**"
+    return string.sub(text, 1, maxChars - 3) .. "..."
 end
-
 local function safeParentGui(gui)
     if syn and syn.protect_gui then
         pcall(function()
@@ -146,7 +129,6 @@ local function safeParentGui(gui)
     end
     gui.Parent = CoreGui
 end
-
 local function createRow(parent, height)
     local row = Instance.new("Frame")
     row.BackgroundTransparency = 1
@@ -155,7 +137,6 @@ local function createRow(parent, height)
     row.Parent = parent
     return row
 end
-
 local function createText(parent, text, size, bold, colorKey)
     local lbl = Instance.new("TextLabel")
     lbl.BackgroundTransparency = 1
@@ -169,7 +150,6 @@ local function createText(parent, text, size, bold, colorKey)
     lbl.Parent = parent
     return lbl
 end
-
 local function createSquareToggle(parent, default, callback)
     local btn = Instance.new("TextButton")
     btn.AutoButtonColor = false
@@ -204,7 +184,6 @@ local function createSquareToggle(parent, default, callback)
         end,
     }
 end
-
 local function createDivider(parent)
     local div = Instance.new("Frame")
     div.BorderSizePixel = 0
@@ -215,7 +194,6 @@ local function createDivider(parent)
     div.Parent = parent
     return div
 end
-
 function Nova:CreateWindow(options)
     options = options or {}
     local titleText = options.Name or "Nova UI"
@@ -564,10 +542,10 @@ function Nova:CreateWindow(options)
             end
         end
     end)
-    local displayName = createText(profile, truncateWithStars((LocalPlayer and LocalPlayer.DisplayName) or "User", 18), 10, true, "Text")
+    local displayName = createText(profile, truncateWithEllipsis((LocalPlayer and LocalPlayer.DisplayName) or "User", 18), 10, true, "Text")
     displayName.Size = UDim2.new(1, -60, 0, 16)
     displayName.Position = UDim2.new(0, 54, 0, 22)
-    local username = createText(profile, truncateWithStars((LocalPlayer and ("@" .. LocalPlayer.Name)) or "@user", 20), 9, false, "SubText")
+    local username = createText(profile, truncateWithEllipsis((LocalPlayer and ("@" .. LocalPlayer.Name)) or "@user", 20), 9, false, "SubText")
     username.Size = UDim2.new(1, -60, 0, 14)
     username.Position = UDim2.new(0, 54, 0, 38)
     -- Content area
@@ -843,7 +821,7 @@ function Nova:CreateWindow(options)
             headerIcon.Image = pIcon or "rbxassetid://0"
             headerIcon.ImageColor3 = Theme.SubText
             headerIcon.Parent = headerRow
-            local headerText = createText(headerRow, truncateWithStars(pTitle, 28), 13, true, "Text")
+            local headerText = createText(headerRow, truncateWithEllipsis(pTitle, 28), 13, true, "Text")
             headerText.Size = UDim2.new(1, -22, 1, 0)
             headerText.Position = UDim2.new(0, 22, 0, 0)
             local body = Instance.new("Frame")
@@ -883,7 +861,7 @@ function Nova:CreateWindow(options)
                     ic.Parent = row
                     x = 22
                 end
-                local lbl = createText(row, truncateWithStars(opt.Name or "Toggle", 30), 12, false, "Text")
+                local lbl = createText(row, truncateWithEllipsis(opt.Name or "Toggle", 30), 12, false, "Text")
                 lbl.Size = UDim2.new(1, -40 - x, 1, 0)
                 lbl.Position = UDim2.new(0, x, 0, 0)
                 local tWrap = Instance.new("Frame")
@@ -943,7 +921,7 @@ function Nova:CreateWindow(options)
                 local max = opt.Max or 100
                 local default = opt.Default or min
                 local step = opt.Increment or 1
-                local suffix = opt.Suffix or "%"
+                local suffix = opt.Suffix or ""
                 local cb = opt.Callback or function() end
                 local wrap = Instance.new("Frame")
                 wrap.BackgroundTransparency = 1
@@ -958,7 +936,7 @@ function Nova:CreateWindow(options)
                 val.Size = UDim2.new(0.3, 0, 1, 0)
                 val.Position = UDim2.new(0.7, 0, 0, 0)
                 val.TextXAlignment = Enum.TextXAlignment.Right
-                val.Text = tostring(default) .. "/" .. tostring(max) .. suffix
+                val.Text = tostring(default) .. suffix
                 val.TextColor3 = Theme.SubText
                 val.TextSize = 11
                 val.Font = Enum.Font.Gotham
@@ -988,7 +966,7 @@ function Nova:CreateWindow(options)
                 local dragging = false
                 local dragInput
                 local function formatValue(v)
-                    val.Text = tostring(v) .. "/" .. tostring(max) .. suffix
+                    val.Text = tostring(v) .. suffix
                 end
                 local function setValue(v)
                     v = math.clamp(v, min, max)
@@ -1156,7 +1134,7 @@ function Nova:CreateWindow(options)
                 valueLabel.Position = UDim2.new(0, 10, 0, 0)
                 valueLabel.TextXAlignment = Enum.TextXAlignment.Left
                 valueLabel.TextYAlignment = Enum.TextYAlignment.Center
-                valueLabel.Text = truncateWithStars(tostring(current), 26)
+                valueLabel.Text = truncateWithEllipsis(tostring(current), 26)
                 valueLabel.TextColor3 = Theme.Text
                 valueLabel.TextSize = 11
                 valueLabel.Font = Enum.Font.Gotham
@@ -1259,7 +1237,7 @@ function Nova:CreateWindow(options)
                         end)
                         it.MouseButton1Click:Connect(function()
                             current = item
-                            valueLabel.Text = truncateWithStars(tostring(current), 26)
+                            valueLabel.Text = truncateWithEllipsis(tostring(current), 26)
                             expanded = false
                             arrow.Text = "▾"
                             catcher.Visible = false
@@ -1302,7 +1280,7 @@ function Nova:CreateWindow(options)
                 local dropdown = {
                     SetValue = function(_, v)
                         current = v
-                        valueLabel.Text = truncateWithStars(tostring(current), 26)
+                        valueLabel.Text = truncateWithEllipsis(tostring(current), 26)
                         rebuild(list)
                     end,
                     UpdateList = function(_, newList)
@@ -1677,6 +1655,7 @@ function Nova:CreateWindow(options)
     end
     if enableSettings or enableConfig then
         local settingsTab = window:CreateTab("Settings")
+        settingsTab._button.LayoutOrder = 9999
         if enableSettings then
             local panel = settingsTab:CreatePanel({ Column = "Left", Title = "UI Settings" })
             panel:CreateKeybind({
@@ -1797,7 +1776,6 @@ function Nova:CreateWindow(options)
     end)
     return window
 end
-
 function Nova:CreateHomeTab(window, options)
     local icon = options.Icon
     local backdrop = options.Backdrop
@@ -1912,5 +1890,4 @@ function Nova:CreateHomeTab(window, options)
     end
     return homeTab
 end
-
 return Nova
