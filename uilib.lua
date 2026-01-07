@@ -1063,7 +1063,7 @@ function Nova:CreateWindow(options)
                 keyBtn.TextColor3 = Theme.Text
                 keyBtn.TextSize = 11
                 keyBtn.Font = Enum.Font.Gotham
-                keyBtn.Text = (opt.Default and (opt.Default.EnumType == Enum.UserInputType and (opt.Default == Enum.UserInputType.MouseButton1 and "Mouse1" or "Mouse2") or opt.Default.Name)) or "None"
+                keyBtn.Text = (opt.Default and opt.Default.Name) or "None"
                 keyBtn.Parent = row
                 applyCorner(keyBtn, 7)
                 applyStroke(keyBtn, "StrokeSoft", 0.45)
@@ -1108,11 +1108,11 @@ function Nova:CreateWindow(options)
                     SetValue = function(_, v)
                         current = v
                         if typeof(current) == "EnumItem" then
-                            if current.EnumType == Enum.UserInputType then
-                                keyBtn.Text = current == Enum.UserInputType.MouseButton1 and "Mouse1" or "Mouse2"
-                            else
-                                keyBtn.Text = current.Name
-                            end
+                            keyBtn.Text = current.Name
+                        elseif current == Enum.UserInputType.MouseButton1 then
+                            keyBtn.Text = "Mouse1"
+                        elseif current == Enum.UserInputType.MouseButton2 then
+                            keyBtn.Text = "Mouse2"
                         else
                             keyBtn.Text = "None"
                         end
@@ -1122,7 +1122,7 @@ function Nova:CreateWindow(options)
                     end,
                 }
                 if opt.ConfigKey then
-                    window._configElements[opt.ConfigKey] = {Element = keybind, Type = "Keybind"}
+                    window._configElements[opt.ConfigKey] = {Element = keybind}
                 end
                 return keybind
             end
@@ -1534,7 +1534,7 @@ function Nova:CreateWindow(options)
                 configName:SetValue(selected)
             end
         })
-        local function refreshConfigs()
+        local refreshBtn = leftPanel:CreateButton({Name = "Refresh List", Callback = function()
             local folder = "NovaConfigs/" .. tostring(game.PlaceId)
             local list = {}
             if isfolder and isfolder(folder) then
@@ -1547,22 +1547,12 @@ function Nova:CreateWindow(options)
                 end
             end
             configsDropdown:UpdateList(list)
-        end
-        local refreshBtn = leftPanel:CreateButton({Name = "Refresh List", Callback = refreshConfigs})
+        end})
         local saveBtn = leftPanel:CreateButton({Name = "Save Config", Callback = function()
             local name = configName:GetValue()
             local data = {}
             for key, info in pairs(window._configElements) do
-                local val = info.Element:GetValue()
-                if info.Type == "Keybind" then
-                    if val then
-                        data[key] = {enumType = val.EnumType.Name, name = val.Name}
-                    end
-                else
-                    if val ~= nil then
-                        data[key] = val
-                    end
-                end
+                data[key] = info.Element:GetValue()
             end
             local json = HttpService:JSONEncode(data)
             local folder = "NovaConfigs/" .. tostring(game.PlaceId)
@@ -1572,8 +1562,6 @@ function Nova:CreateWindow(options)
             if writefile then
                 writefile(folder .. "/" .. name .. ".json", json)
                 window:Notify({Title = "Config", Text = "Saved config " .. name})
-            else
-                window:Notify({Title = "Config", Text = "Executor does not support writefile"})
             end
         end})
         local loadBtn = leftPanel:CreateButton({Name = "Load Config", Callback = function()
@@ -1586,17 +1574,12 @@ function Nova:CreateWindow(options)
                 for key, value in pairs(data) do
                     local info = window._configElements[key]
                     if info then
-                        local val = value
-                        if info.Type == "Keybind" then
-                            local enum = Enum[value.enumType]
-                            val = enum and enum[value.name] or nil
-                        end
-                        info.Element:SetValue(val)
+                        info.Element:SetValue(value)
                     end
                 end
                 window:Notify({Text = "Loaded config " .. name})
             else
-                window:Notify({Text = "Config " .. name .. " not found or no file support"})
+                window:Notify({Text = "Config " .. name .. " not found"})
             end
         end})
         local deleteBtn = leftPanel:CreateButton({Name = "Delete Config", Callback = function()
@@ -1605,12 +1588,8 @@ function Nova:CreateWindow(options)
             if isfile and isfile(file) then
                 delfile(file)
                 window:Notify({Text = "Deleted " .. name})
-            else
-                window:Notify({Text = "Config not found or no file support"})
             end
         end})
-        refreshConfigs()
-        configTab._button.MouseButton1Click:Connect(refreshConfigs)
     end
 
     -- Global keybind to open/close UI
