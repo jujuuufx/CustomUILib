@@ -1575,6 +1575,7 @@ function Nova:CreateWindow(options)
             else
                 window:Notify({Title = "Config", Text = "Executor does not support writefile"})
             end
+            refreshConfigs()  -- Refresh after save
         end})
         local loadBtn = leftPanel:CreateButton({Name = "Load Config", Callback = function()
             local name = configName:GetValue()
@@ -1608,6 +1609,7 @@ function Nova:CreateWindow(options)
             else
                 window:Notify({Text = "Config not found or no file support"})
             end
+            refreshConfigs()  -- Refresh after delete
         end})
         refreshConfigs()
         configTab._button.MouseButton1Click:Connect(refreshConfigs)
@@ -1639,73 +1641,6 @@ function Nova:CreateWindow(options)
     end)
 
     return window
-end
-
-function Nova:CreateHomeTab(window, options)
-    local icon = options.Icon
-    local backdrop = options.Backdrop
-    local discordInvite = options.DiscordInvite
-    local supported = options.SupportedExecutors or {}
-    local unsupported = options.UnsupportedExecutors or {}
-    local changelog = options.Changelog or {}
-    local executor = "Unknown"
-    if identifyexecutor then
-        executor = identifyexecutor()
-    elseif getexecutorname then
-        executor = getexecutorname()
-    end
-    local gameName = "Unknown"
-    pcall(function()
-        gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
-    end)
-    local playersService = game:GetService("Players")
-    local homeTab = window:CreateTab({Name = "Home", Icon = icon})
-    local content = homeTab._content
-    local bgImage = Instance.new("ImageLabel")
-    bgImage.BackgroundTransparency = 1
-    bgImage.Size = UDim2.new(1, 0, 1, 0)
-    bgImage.Image = "rbxassetid://" .. tostring(backdrop or 0)
-    bgImage.ScaleType = Enum.ScaleType.Fit
-    bgImage.Parent = content
-    bgImage.ZIndex = -1
-    local userPanel = homeTab:CreatePanel({Column = "Left", Title = "User Information"})
-    userPanel:CreateLabel("Display Name: " .. (LocalPlayer.DisplayName or "Unknown"))
-    userPanel:CreateLabel("Username: " .. (LocalPlayer.Name or "Unknown"))
-    userPanel:CreateLabel("User ID: " .. (LocalPlayer.UserId or "Unknown"))
-    userPanel:CreateLabel("Executor: " .. executor)
-    local infoPanel = homeTab:CreatePanel({Column = "Left", Title = "Info"})
-    if discordInvite then
-        infoPanel:CreateButton({Name = "Join Discord", Callback = function()
-            local invite = discordInvite
-            local clip = invite:match("http") and invite or "<https://discord.gg/>" .. invite
-            local success, err = pcall(setclipboard, clip)
-            if success then
-                window:Notify({Title = "Success", Text = "Copied Discord invite to clipboard", Duration = 3})
-            else
-                window:Notify({Title = "Error", Text = "Could not copy to clipboard. Invite: " .. invite, Duration = 5})
-            end
-        end})
-    end
-    infoPanel:CreateLabel("Supported Executors:")
-    for _, exec in ipairs(supported) do
-        infoPanel:CreateLabel(exec)
-    end
-    infoPanel:CreateLabel("Unsupported Executors:")
-    for _, exec in ipairs(unsupported) do
-        infoPanel:CreateLabel(exec)
-    end
-    local gamePanel = homeTab:CreatePanel({Column = "Right", Title = "Game Information"})
-    gamePanel:CreateLabel("Game Name: " .. gameName)
-    gamePanel:CreateLabel("Place ID: " .. game.PlaceId)
-    gamePanel:CreateLabel("Job ID: " .. game.JobId)
-    gamePanel:CreateLabel("Players: " .. #playersService:GetPlayers() .. "/" .. playersService.MaxPlayers)
-    local changePanel = homeTab:CreatePanel({Column = "Right", Title = "Changelog"})
-    for _, entry in ipairs(changelog) do
-        changePanel:CreateLabel((entry.Title or "Update") .. " - " .. (entry.Date or "Unknown"))
-        changePanel:CreateLabel(entry.Description or "")
-        changePanel:Divider()
-    end
-    return homeTab
 end
 
 return Nova
