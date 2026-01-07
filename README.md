@@ -1,307 +1,132 @@
-# Buster – Sev.cc UI Library
+# Nova — UI Library
 
-**Credits:** NotFate!
+Overview
+Nova is a lightweight, flexible Roblox UI library providing windows, tabs, panels and common controls (buttons, toggles, sliders, dropdowns, keybinds, labels, notifications) for building modern interfaces quickly.
 
-## Overview
-
-Buster is a powerful and flexible Roblox UI library designed to help you create sleek, modern interfaces with minimal effort. It provides a rich set of components such as windows, tabs, panels, toggles, sliders, dropdowns, buttons, keybinds, labels, and notifications.
-
----
-
-## Installation
-
-Load the library using the code below:
+Installation
+Load the library at the top of your script:
 
 ```lua
 local RAW_URL = "https://raw.githubusercontent.com/jujuuufx/CustomUILib/refs/heads/main/uilib.lua"
-local Buster = loadstring(game:HttpGet(RAW_URL))()
-assert(Buster, "Failed to load UI library from RAW_URL")
+local Nova = loadstring(game:HttpGet(RAW_URL))()
+assert(Nova, "Failed to load UI library from RAW_URL")
 ```
 
-> **Important:** Always load the UI library at the very top of your script.
+Important: Always require/load Nova at the top of your script.
 
----
+Getting started
 
-## Getting Started
-
-### Creating a Window
+Create a window:
 
 ```lua
-local Window = Buster:CreateWindow({
-    Name = "Sev.cc",
-    Footer = "The Bronx",
-    BrandText = "S",
-    -- BrandImage = "rbxassetid://0" -- Optional: use an image instead of text
+local Window = Nova:CreateWindow({
+    Name = "Nova UI",
+    Footer = "",
+    BrandText = "N",
+    -- BrandImage = "rbxassetid://0" -- optional
 })
 ```
 
-**Parameters:**
+Window notes
+- Resizable (drag bottom-right)
+- Minimum size: 300 × 200
 
-* **Name** *(string)* – Window title
-* **Footer** *(string)* – Footer text shown at the bottom
-* **BrandText** *(string)* – Short text or single letter for branding
-* **BrandImage** *(string, optional)* – Asset ID for a custom brand image
-
-The window is resizable by dragging the bottom-right corner.
-
-* **Minimum size:** `300x200`
-
----
-
-## Tabs
-
-Organize your UI into sections using tabs:
+Tabs
 
 ```lua
-local DashboardTab   = Window:CreateTab("Dashboard")
+local DashboardTab = Window:CreateTab("Dashboard")
 local LocalPlayerTab = Window:CreateTab("Local Player")
-local PlayersTab     = Window:CreateTab("Players")
-local TeleportsTab   = Window:CreateTab("Teleports / Purchases")
-local MiscTab        = Window:CreateTab("Misc")
 ```
 
----
-
-## Panels
-
-Panels help organize components inside tabs. Panels can be placed in the **Left** or **Right** column.
+Panels
+Panels organize components inside tabs and can be placed in "Left" or "Right" columns:
 
 ```lua
-local LeftCard = LocalPlayerTab:CreatePanel({
-    Column = "Left",
-    Title = "Local Player Modifications"
-})
-
-local RightCard = LocalPlayerTab:CreatePanel({
-    Column = "Right",
-    Title = "Player Options"
-})
+local LeftCard = LocalPlayerTab:CreatePanel({ Column = "Left", Title = "Local Player Modifications" })
+local RightCard = LocalPlayerTab:CreatePanel({ Column = "Right", Title = "Player Options" })
 ```
 
----
+Components
 
-## Components
-
-### Label
-
-Display static text with optional color customization:
-
+Label
 ```lua
-RightCard:CreateLabel({
-    Text = "Quick actions",
-    Color = Color3.fromRGB(150, 152, 160)
-})
+RightCard:CreateLabel({ Text = "Quick actions", Color = Color3.fromRGB(150,152,160) })
 ```
+- Text (string)
+- Color (Color3, optional)
 
----
-
-### Button
-
-Create clickable buttons with callbacks:
-
+Button
 ```lua
 RightCard:CreateButton({
-    Name = "Test Notification",
-    Callback = function()
-        Window:Notify({
-            Title = "Sev.cc",
-            Text = "Notification test",
-            Duration = 2
-        })
-    end
+  Name = "Test Notification",
+  Callback = function()
+    Window:Notify({ Title = "Nova UI", Text = "Notification test", Duration = 2 })
+  end
 })
 ```
+- Name (string)
+- Callback (function)
 
----
-
-### Toggle
-
-Create on/off switches:
-
+Toggle
 ```lua
 LeftCard:CreateToggle({
-    Name = "Infinite Stamina",
-    Default = false,
-    Callback = function(value)
-        print("Infinite Stamina:", value)
-    end
+  Name = "Infinite Stamina",
+  Default = false,
+  Callback = function(value) print("Infinite Stamina:", value) end
 })
 ```
+- Name (string), Default (boolean), Callback (function)
 
-**Parameters:**
-
-* **Name** *(string)* – Toggle label
-* **Default** *(boolean)* – Initial state
-* **Callback** *(function)* – Fired when the value changes
-
----
-
-### Slider
-
-Create numeric sliders with custom ranges:
-
+Slider
 ```lua
 RightCard:CreateSlider({
-    Name = "WalkSpeed Value",
-    Min = 0,
-    Max = 250,
-    Default = 50,
-    Increment = 1,
-    Suffix = "%",
-    Callback = function(value)
-        print("WalkSpeed:", value)
-    end
+  Name = "WalkSpeed Value",
+  Min = 0, Max = 250, Default = 50, Increment = 1, Suffix = "%",
+  Callback = function(value) print("WalkSpeed:", value) end
 })
 ```
+- Name, Min, Max, Default, Increment, Suffix (optional), Callback
 
-**Parameters:**
-
-* **Name** *(string)* – Slider label
-* **Min** *(number)* – Minimum value
-* **Max** *(number)* – Maximum value
-* **Default** *(number)* – Initial value
-* **Increment** *(number)* – Step size
-* **Suffix** *(string, optional)* – Text appended to the value
-* **Callback** *(function)* – Fired when the value changes
-
----
-
-### Dropdown
-
-Create dropdown menus with selectable options:
-
+Dropdown
 ```lua
 RightCard:CreateDropdown({
-    List = {"Bronx Market 1", "Bronx Market 2", "Bronx Market 3"},
-    Default = "Bronx Market 2",
-    Callback = function(value)
-        print("Selected Market:", value)
-    end
+  List = {"Option 1","Option 2","Option 3"},
+  Default = "Option 2",
+  Callback = function(value) print("Selected:", value) end
 })
 ```
+- List (table), Default (string), Callback
 
-**Parameters:**
-
-* **List** *(table)* – Options to display
-* **Default** *(string)* – Initially selected option
-* **Callback** *(function)* – Fired on selection change
-
----
-
-### Keybind
-
-Create customizable keybind inputs:
-
+Keybind
 ```lua
 RightCard:CreateKeybind({
-    Name = "Click Teleport Key",
-    Default = Enum.KeyCode.LeftControl,
-    Callback = function(key)
-        print("Teleport Key changed to:", key)
-    end
+  Name = "Click Teleport Key",
+  Default = Enum.KeyCode.LeftControl,
+  Callback = function(key) print("Key:", key) end
 })
 ```
+- Name, Default (Enum.KeyCode), Callback
 
-**Parameters:**
-
-* **Name** *(string)* – Keybind label
-* **Default** *(Enum.KeyCode)* – Initial key
-* **Callback** *(function)* – Fired when the key changes
-
----
-
-## Notifications
-
-Display temporary notifications:
-
+Notifications
 ```lua
-Window:Notify({
-    Title = "Sev.cc",
-    Text = "UI Loaded",
-    Duration = 2
-})
+Window:Notify({ Title = "Nova UI", Text = "UI Loaded", Duration = 2 })
 ```
+- Title, Text, Duration (seconds)
 
-**Parameters:**
-
-* **Title** *(string)* – Notification title
-* **Text** *(string)* – Message content
-* **Duration** *(number)* – Display time (seconds)
-
----
-
-## Complete Example
-
+Complete example
 ```lua
--- Load library
 local RAW_URL = "https://raw.githubusercontent.com/jujuuufx/CustomUILib/refs/heads/main/uilib.lua"
-local Buster = loadstring(game:HttpGet(RAW_URL))()
-assert(Buster, "Failed to load UI library from RAW_URL")
+local Nova = loadstring(game:HttpGet(RAW_URL))()
+assert(Nova)
 
--- Create window
-local Window = Buster:CreateWindow({
-    Name = "Sev.cc",
-    Footer = "The Bronx",
-    BrandText = "S",
-})
-
--- Create tab
+local Window = Nova:CreateWindow({ Name = "Nova UI", Footer = "", BrandText = "N" })
 local LocalPlayerTab = Window:CreateTab("Local Player")
 
--- Create panels
-local LeftCard = LocalPlayerTab:CreatePanel({
-    Column = "Left",
-    Title = "Local Player Modifications"
-})
+local LeftCard = LocalPlayerTab:CreatePanel({ Column = "Left", Title = "Local Player Modifications" })
+local RightCard = LocalPlayerTab:CreatePanel({ Column = "Right", Title = "Player Options" })
 
-local RightCard = LocalPlayerTab:CreatePanel({
-    Column = "Right",
-    Title = "Player Options"
-})
+LeftCard:CreateToggle({ Name = "Infinite Stamina", Default = false, Callback = function(v) print("Infinite Stamina:", v) end })
+RightCard:CreateSlider({ Name = "WalkSpeed Value", Min = 0, Max = 250, Default = 50, Increment = 1, Suffix = "%", Callback = function(v) print("WalkSpeed:", v) end })
 
--- Add components
-LeftCard:CreateToggle({
-    Name = "Infinite Stamina",
-    Default = false,
-    Callback = function(value)
-        print("Infinite Stamina:", value)
-    end
-})
-
-RightCard:CreateSlider({
-    Name = "WalkSpeed Value",
-    Min = 0,
-    Max = 250,
-    Default = 50,
-    Increment = 1,
-    Suffix = "%",
-    Callback = function(value)
-        print("WalkSpeed:", value)
-    end
-})
-
--- Notify
-Window:Notify({
-    Title = "Sev.cc",
-    Text = "UI Loaded",
-    Duration = 2
-})
+Window:Notify({ Title = "Nova UI", Text = "UI Loaded", Duration = 2 })
 ```
-
----
-
-## Features
-
-* Modern, clean UI design
-* Resizable window (minimum 300x200)
-* Left / right column panel layout
-* Rich components: toggles, sliders, dropdowns, buttons, keybinds, labels
-* Built-in notification system
-* Custom branding (text or image)
-* Simple and intuitive API
-
----
-
-## Credits
-
-**NotFate!** – Creator of the Buster UI Library
