@@ -118,6 +118,7 @@ local function makeDraggable(frame, handle)
     end)
 end
 
+print("draggable yep yep")
 
 local function truncateWithStars(text, maxChars)
     text = tostring(text or "")
@@ -416,7 +417,7 @@ function Nova:CreateWindow(options)
     fullScreenBtn.BackgroundColor3 = Theme.NeutralButton
     fullScreenBtn.LayoutOrder = 2
     fullScreenBtn.Parent = controls
-    applyCorner(fullScreenBtn, 12)
+    applyCorner(fullScreenBtn, 15)
     local closeBtn = Instance.new("TextButton")
     closeBtn.Name = "Close"
     closeBtn.AutoButtonColor = false
