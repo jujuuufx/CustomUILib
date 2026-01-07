@@ -7,6 +7,7 @@ local GuiService = game:GetService("GuiService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local HttpService = game:GetService("HttpService")
+
 local function getInsetY()
     local insetY = 0
     pcall(function()
@@ -15,6 +16,7 @@ local function getInsetY()
     end)
     return insetY
 end
+
 local Theme = {
     Bg = Color3.fromRGB(14, 15, 18),
     Top = Color3.fromRGB(18, 19, 23),
@@ -33,6 +35,7 @@ local Theme = {
     NeutralButtonHover = Color3.fromRGB(100, 100, 100),
     CloseButtonHover = Color3.fromRGB(200, 50, 60),
 }
+
 local Themes = {
     Dark = Theme,
     Light = {
@@ -54,19 +57,23 @@ local Themes = {
         CloseButtonHover = Color3.fromRGB(200, 50, 60),
     },
 }
+
 -- OldUI button colors (from oldui.lua default theme) now integrated into Theme
+
 local function tween(instance, properties, duration)
     duration = duration or 0.18
     local t = TweenService:Create(instance, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), properties)
     t:Play()
     return t
 end
+
 local function applyCorner(instance, radius)
     local c = Instance.new("UICorner")
     c.CornerRadius = UDim.new(0, radius)
     c.Parent = instance
     return c
 end
+
 local function applyStroke(instance, colorKey, transparency)
     local s = Instance.new("UIStroke")
     s.Thickness = 1
@@ -75,6 +82,7 @@ local function applyStroke(instance, colorKey, transparency)
     s.Parent = instance
     return s
 end
+
 local function makeDraggable(frame, handle)
     handle = handle or frame
     local dragging = false
@@ -105,6 +113,7 @@ local function makeDraggable(frame, handle)
         end
     end)
 end
+
 local function truncateWithStars(text, maxChars)
     text = tostring(text or "")
     maxChars = maxChars or 24
@@ -116,6 +125,7 @@ local function truncateWithStars(text, maxChars)
     end
     return string.sub(text, 1, maxChars - 2) .. "**"
 end
+
 local function safeParentGui(gui)
     if syn and syn.protect_gui then
         pcall(function()
@@ -130,6 +140,7 @@ local function safeParentGui(gui)
     end
     gui.Parent = CoreGui
 end
+
 local function createRow(parent, height)
     local row = Instance.new("Frame")
     row.BackgroundTransparency = 1
@@ -138,6 +149,7 @@ local function createRow(parent, height)
     row.Parent = parent
     return row
 end
+
 local function createText(parent, text, size, bold, colorKey)
     local lbl = Instance.new("TextLabel")
     lbl.BackgroundTransparency = 1
@@ -151,6 +163,7 @@ local function createText(parent, text, size, bold, colorKey)
     lbl.Parent = parent
     return lbl
 end
+
 local function createSquareToggle(parent, default, callback)
     local btn = Instance.new("TextButton")
     btn.AutoButtonColor = false
@@ -185,6 +198,7 @@ local function createSquareToggle(parent, default, callback)
         end,
     }
 end
+
 local function createDivider(parent)
     local div = Instance.new("Frame")
     div.BorderSizePixel = 0
@@ -195,6 +209,7 @@ local function createDivider(parent)
     div.Parent = parent
     return div
 end
+
 function Nova:CreateWindow(options)
     options = options or {}
     local titleText = options.Name or "Nova UI"
@@ -365,11 +380,11 @@ function Nova:CreateWindow(options)
     subtitle.Font = Enum.Font.Gotham
     subtitle.TextXAlignment = Enum.TextXAlignment.Left
     subtitle.Parent = top
-    -- Only 2 small buttons (minimize + close) with oldui.lua colors
+    -- Only 3 small buttons (minimize, full screen, close) with oldui.lua colors
     local controls = Instance.new("Frame")
     controls.BackgroundTransparency = 1
-    controls.Size = UDim2.new(0, 44, 0, 16)
-    controls.Position = UDim2.new(1, -58, 0, 18)
+    controls.Size = UDim2.new(0, 66, 0, 16)
+    controls.Position = UDim2.new(1, -80, 0, 18)
     controls.Parent = top
     local controlsLayout = Instance.new("UIListLayout")
     controlsLayout.FillDirection = Enum.FillDirection.Horizontal
@@ -387,6 +402,16 @@ function Nova:CreateWindow(options)
     minimizeBtn.LayoutOrder = 1
     minimizeBtn.Parent = controls
     applyCorner(minimizeBtn, 12)
+    local fullScreenBtn = Instance.new("TextButton")
+    fullScreenBtn.Name = "FullScreen"
+    fullScreenBtn.AutoButtonColor = false
+    fullScreenBtn.Text = ""
+    fullScreenBtn.BorderSizePixel = 0
+    fullScreenBtn.Size = UDim2.new(0, 14, 0, 14)
+    fullScreenBtn.BackgroundColor3 = Theme.NeutralButton
+    fullScreenBtn.LayoutOrder = 2
+    fullScreenBtn.Parent = controls
+    applyCorner(fullScreenBtn, 12)
     local closeBtn = Instance.new("TextButton")
     closeBtn.Name = "Close"
     closeBtn.AutoButtonColor = false
@@ -394,12 +419,15 @@ function Nova:CreateWindow(options)
     closeBtn.BorderSizePixel = 0
     closeBtn.Size = UDim2.new(0, 14, 0, 14)
     closeBtn.BackgroundColor3 = Theme.NeutralButton
-    closeBtn.LayoutOrder = 2
+    closeBtn.LayoutOrder = 3
     closeBtn.Parent = controls
     applyCorner(closeBtn, 12)
     makeDraggable(main, top)
-    -- Minimize / Close behavior
+    -- Minimize / FullScreen / Close behavior
     local minimized = false
+    local isFullScreen = false
+    local savedSize = main.Size
+    local savedPos = main.Position
     local function centerTo(w, h)
         main.Size = UDim2.new(0, w, 0, h)
         main.Position = UDim2.new(0.5, -w / 2, 0.5, -h / 2)
@@ -415,6 +443,20 @@ function Nova:CreateWindow(options)
         end
     end
     minimizeBtn.MouseButton1Click:Connect(minimizeToggle)
+    fullScreenBtn.MouseButton1Click:Connect(function()
+        isFullScreen = not isFullScreen
+        if isFullScreen then
+            savedSize = main.Size
+            savedPos = main.Position
+            local viewport = Camera.ViewportSize
+            local insetY = getInsetY()
+            main.Position = UDim2.new(0, 0, 0, insetY)
+            main.Size = UDim2.new(1, 0, 1, -insetY)
+        else
+            main.Size = savedSize
+            main.Position = savedPos
+        end
+    end)
     closeBtn.MouseButton1Click:Connect(function()
         main.Visible = false
     end)
@@ -423,6 +465,12 @@ function Nova:CreateWindow(options)
     end)
     minimizeBtn.MouseLeave:Connect(function()
         tween(minimizeBtn, { BackgroundColor3 = Theme.NeutralButton }, 0.12)
+    end)
+    fullScreenBtn.MouseEnter:Connect(function()
+        tween(fullScreenBtn, { BackgroundColor3 = Theme.NeutralButtonHover }, 0.12)
+    end)
+    fullScreenBtn.MouseLeave:Connect(function()
+        tween(fullScreenBtn, { BackgroundColor3 = Theme.NeutralButton }, 0.12)
     end)
     closeBtn.MouseEnter:Connect(function()
         tween(closeBtn, { BackgroundColor3 = Theme.CloseButtonHover }, 0.12)
@@ -433,7 +481,7 @@ function Nova:CreateWindow(options)
     -- Responsive auto-size like oldui.lua (unless a fixed Size is provided)
     if Camera and not forcedSize then
         Camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
-            if minimized then
+            if minimized or isFullScreen then
                 return
             end
             local w, h = computeWindowSize()
@@ -808,7 +856,7 @@ function Nova:CreateWindow(options)
             end)
             local panel = {}
             panel.Frame = card
-            panel.Body = body  -- Expose body for custom elements
+            panel.Body = body -- Expose body for custom elements
             function panel:Divider()
                 local dWrap = createRow(body, 6)
                 createDivider(dWrap)
@@ -1307,7 +1355,7 @@ function Nova:CreateWindow(options)
                 local cb = opt.Callback or function() end
                 local wrap = Instance.new("Frame")
                 wrap.BackgroundTransparency = 1
-                wrap.Size = UDim2.new(1, 0, 0, 200)  -- Approximate height
+                wrap.Size = UDim2.new(1, 0, 0, 200) -- Approximate height
                 wrap.Parent = body
                 local titleRow = createRow(wrap, 18)
                 local lbl = createText(titleRow, nameText, 12, false, "Text")
@@ -1328,7 +1376,7 @@ function Nova:CreateWindow(options)
                 -- SV square
                 local svSquare = Instance.new("Frame")
                 svSquare.Size = UDim2.new(1, -50, 0, 120)
-                svSquare.BackgroundColor3 = Color3.new(1, 0, 0)  -- Initial hue
+                svSquare.BackgroundColor3 = Color3.new(1, 0, 0) -- Initial hue
                 svSquare.Parent = pickerBody
                 applyCorner(svSquare, 6)
                 applyStroke(svSquare, "StrokeSoft", 0.4)
@@ -1609,6 +1657,7 @@ function Nova:CreateWindow(options)
         title.TextColor3 = Theme.Text
         subtitle.TextColor3 = Theme.SubText
         minimizeBtn.BackgroundColor3 = Theme.NeutralButton
+        fullScreenBtn.BackgroundColor3 = Theme.NeutralButton
         closeBtn.BackgroundColor3 = Theme.NeutralButton
         sidebar.BackgroundColor3 = Theme.Side
         profile.BackgroundColor3 = Theme.Card
@@ -1742,6 +1791,7 @@ function Nova:CreateWindow(options)
     end)
     return window
 end
+
 function Nova:CreateHomeTab(window, options)
     local icon = options.Icon
     local backdrop = options.Backdrop
@@ -1780,7 +1830,7 @@ function Nova:CreateHomeTab(window, options)
     bgImage.Image = "rbxassetid://" .. tostring(backdrop or 0)
     bgImage.ScaleType = Enum.ScaleType.Fit
     bgImage.Parent = content
-    bgImage.ZIndex = -2  -- Lower ZIndex to ensure it's behind everything
+    bgImage.ZIndex = -2 -- Lower ZIndex to ensure it's behind everything
     -- Add a subtle overlay for text readability
     local overlay = Instance.new("Frame")
     overlay.BackgroundColor3 = Color3.new(0, 0, 0)
@@ -1801,9 +1851,9 @@ function Nova:CreateHomeTab(window, options)
     avatarImage.BackgroundTransparency = 1
     avatarImage.ScaleType = Enum.ScaleType.Fit
     avatarImage.Parent = avatarContainer
-    applyCorner(avatarImage, 50)  -- Circular avatar
+    applyCorner(avatarImage, 50) -- Circular avatar
     applyStroke(avatarImage, "StrokeSoft", 0.3)
-    userPanel:CreateLabel({Text = "Welcome, " .. (LocalPlayer.DisplayName or "Unknown") .. "!", Bold = true, Size = 14, Color = "Accent"})  -- Styled welcome
+    userPanel:CreateLabel({Text = "Welcome, " .. (LocalPlayer.DisplayName or "Unknown") .. "!", Bold = true, Size = 14, Color = "Accent"}) -- Styled welcome
     userPanel:CreateLabel("Display Name: " .. (LocalPlayer.DisplayName or "Unknown"))
     userPanel:CreateLabel("Username: " .. (LocalPlayer.Name or "Unknown"))
     userPanel:CreateLabel("User ID: " .. (LocalPlayer.UserId or "Unknown"))
@@ -1812,7 +1862,7 @@ function Nova:CreateHomeTab(window, options)
     if discordInvite then
         infoPanel:CreateButton({Name = "Join Discord", Callback = function()
             local invite = discordInvite
-            local clip = invite:match("http") and invite or "https://discord.gg/" .. invite
+            local clip = invite:match("http") and invite or "" .. invite
             local success, err = pcall(setclipboard, clip)
             if success then
                 window:Notify({Title = "Success", Text = "Copied Discord invite to clipboard", Duration = 3})
@@ -1842,7 +1892,7 @@ function Nova:CreateHomeTab(window, options)
     gameIconImage.BackgroundTransparency = 1
     gameIconImage.ScaleType = Enum.ScaleType.Fit
     gameIconImage.Parent = gameIconContainer
-    applyCorner(gameIconImage, 10)  -- Rounded square
+    applyCorner(gameIconImage, 10) -- Rounded square
     applyStroke(gameIconImage, "StrokeSoft", 0.3)
     gamePanel:CreateLabel("Game Name: " .. gameName)
     gamePanel:CreateLabel("Place ID: " .. game.PlaceId)
@@ -1856,4 +1906,5 @@ function Nova:CreateHomeTab(window, options)
     end
     return homeTab
 end
+
 return Nova
