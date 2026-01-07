@@ -1534,7 +1534,7 @@ function Nova:CreateWindow(options)
                 configName:SetValue(selected)
             end
         })
-        local refreshBtn = leftPanel:CreateButton({Name = "Refresh List", Callback = function()
+        local function refreshConfigs()
             local folder = "NovaConfigs/" .. tostring(game.PlaceId)
             local list = {}
             if isfolder and isfolder(folder) then
@@ -1547,7 +1547,8 @@ function Nova:CreateWindow(options)
                 end
             end
             configsDropdown:UpdateList(list)
-        end})
+        end
+        local refreshBtn = leftPanel:CreateButton({Name = "Refresh List", Callback = refreshConfigs})
         local saveBtn = leftPanel:CreateButton({Name = "Save Config", Callback = function()
             local name = configName:GetValue()
             local data = {}
@@ -1555,7 +1556,7 @@ function Nova:CreateWindow(options)
                 local val = info.Element:GetValue()
                 if info.Type == "Keybind" then
                     if val then
-                        data[key] = {enumType = tostring(val.EnumType), name = val.Name}
+                        data[key] = {enumType = val.EnumType.Name, name = val.Name}
                     end
                 else
                     if val ~= nil then
@@ -1587,7 +1588,7 @@ function Nova:CreateWindow(options)
                     if info then
                         local val = value
                         if info.Type == "Keybind" then
-                            local enum = (value.enumType == "KeyCode" and Enum.KeyCode) or (value.enumType == "UserInputType" and Enum.UserInputType) or nil
+                            local enum = Enum[value.enumType]
                             val = enum and enum[value.name] or nil
                         end
                         info.Element:SetValue(val)
@@ -1608,6 +1609,8 @@ function Nova:CreateWindow(options)
                 window:Notify({Text = "Config not found or no file support"})
             end
         end})
+        refreshConfigs()
+        configTab._button.MouseButton1Click:Connect(refreshConfigs)
     end
 
     -- Global keybind to open/close UI
