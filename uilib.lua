@@ -1780,7 +1780,9 @@ function Nova:CreateWindow(options)
     return window
 end
 -- Function to create the Home tab in the Nova UI
--- This tab displays user information, game details, supported executors, and changelog
+-- This tab displays user information, game details, supported executors, unsupported executors, and changelog
+-- Enhanced with additional user and game details, executor status indicators, a refresh button for dynamic info,
+-- quick actions, and real-time performance monitoring (FPS, Ping, Memory Usage)
 -- Parameters:
 --   window: The main UI window object
 --   options: Table containing customization options (Icon, Backdrop, DiscordInvite, SupportedExecutors, UnsupportedExecutors, Changelog)
@@ -1793,21 +1795,40 @@ function Nova:CreateHomeTab(window, options)
     local unsupported = options.UnsupportedExecutors or {}
     local changelog = options.Changelog or {}
 
-    -- Detect executor name
-    local executor = "Unknown"
+    -- Detect executor name (enhanced to handle version if available)
+    local executorName = "Unknown"
+    local executorVersion = ""
     if identifyexecutor then
-        executor = identifyexecutor()
+        executorName, executorVersion = identifyexecutor()
     elseif getexecutorname then
-        executor = getexecutorname()
+        executorName = getexecutorname()
     end
+    local executor = executorName .. (executorVersion ~= "" and " " .. executorVersion or "")
+
+    -- Function to check executor status
+    local function getExecutorStatus()
+        if table.find(unsupported, executorName) then
+            return "Unsupported", "Error"  -- Color assuming "Error" is red
+        elseif table.find(supported, executorName) then
+            return "Supported", "Success"  -- Color assuming "Success" is green
+        else
+            return "Unknown", "Text"
+        end
+    end
+    local execStatus, execColor = getExecutorStatus()
 
     -- Fetch game information with error handling
     local gameName = "Unknown"
     local gameIcon = "0"
+    local creatorName = "Unknown"
+    local creatorId = 0
+    local universeId = game.GameId
     pcall(function()
         local productInfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
         gameName = productInfo.Name
         gameIcon = productInfo.IconImageAssetId
+        creatorName = productInfo.Creator.Name
+        creatorId = productInfo.Creator.Id
     end)
 
     -- Get local player and thumbnail
@@ -1822,6 +1843,10 @@ function Nova:CreateHomeTab(window, options)
             userThumbnail = content
         end
     end)
+
+    -- Additional player info
+    local accountAge = LocalPlayer.AccountAge or 0
+    local membership = tostring(LocalPlayer.MembershipType):gsub("Enum.MembershipType.", "") or "None"
 
     -- Create the Home tab
     local homeTab = window:CreateTab({Name = "Home", Icon = icon})
@@ -1870,7 +1895,9 @@ function Nova:CreateHomeTab(window, options)
     userPanel:CreateLabel("Display Name: " .. (LocalPlayer.DisplayName or "Unknown"))
     userPanel:CreateLabel("Username: " .. (LocalPlayer.Name or "Unknown"))
     userPanel:CreateLabel("User ID: " .. tostring(LocalPlayer.UserId or "Unknown"))
-    userPanel:CreateLabel("Executor: " .. executor)
+    userPanel:CreateLabel("Account Age: " .. tostring(accountAge) .. " days")
+    userPanel:CreateLabel("Membership: " .. membership)
+    userPanel:CreateLabel({Text = "Executor: " .. executor .. " (" .. execStatus .. ")", Color = execColor})
 
     -- Info Panel (Left Column, below User Info)
     local infoPanel = homeTab:CreatePanel({Column = "Left", Title = "Info"})
@@ -1928,11 +1955,21 @@ function Nova:CreateHomeTab(window, options)
     applyCorner(gameIconImage, 10)  -- Rounded corners
     applyStroke(gameIconImage, "StrokeSoft", 0.3)
 
-    -- Game details
-    gamePanel:CreateLabel("Game Name: " .. gameName)
-    gamePanel:CreateLabel("Place ID: " .. tostring(game.PlaceId))
-    gamePanel:CreateLabel("Job ID: " .. game.JobId)
-    gamePanel:CreateLabel("Players: " .. #playersService:GetPlayers() .. "/" .. playersService.MaxPlayers)
+    -- Game details (with references for refresh)
+    local gameNameLabel = gamePanel:CreateLabel("Game Name: " .. gameName)
+    local creatorLabel = gamePanel:CreateLabel("Creator: " .. creatorName .. " (ID: " .. tostring(creatorId) .. ")")
+    local placeIdLabel = gamePanel:CreateLabel("Place ID: " .. tostring(game.PlaceId))
+    local universeIdLabel = gamePanel:CreateLabel("Universe ID: " .. tostring(universeId))
+    local jobIdLabel = gamePanel:CreateLabel("Job ID: " .. game.JobId)
+    local playersLabel = gamePanel:CreateLabel("Players: " .. #playersService:GetPlayers() .. "/" .. playersService.MaxPlayers)
+
+    -- Refresh button to update dynamic game info
+    gamePanel:CreateButton({Name = "Refresh Info", Callback = function()
+        -- Update player count
+        playersLabel.Text = "Players: " .. #playersService:GetPlayers() .. "/" .. playersService.MaxPlayers
+        -- Could add more dynamic updates if needed (e.g., refetch game info if changeable)
+        window:Notify({Title = "Info Refreshed", Text = "Game information has been updated.", Duration = 2})
+    end})
 
     -- Changelog Panel (Right Column, below Game Info)
     local changePanel = homeTab:CreatePanel({Column = "Right", Title = "Changelog"})
@@ -1948,6 +1985,69 @@ function Nova:CreateHomeTab(window, options)
             end
         end
     end
+
+    -- Additional Cool Feature: Quick Actions Panel (Left Column, below Info)
+    local actionsPanel = homeTab:CreatePanel({Column = "Left", Title = "Quick Actions"})
+    actionsPanel:CreateButton({Name = "Copy User ID", Callback = function()
+        setclipboard(tostring(LocalPlayer.UserId))
+        window:Notify({Title = "Copied", Text = "User ID copied to clipboard.", Duration = 2})
+    end})
+    actionsPanel:CreateButton({Name = "Copy Place ID", Callback = function()
+        setclipboard(tostring(game.PlaceId))
+        window:Notify({Title = "Copied", Text = "Place ID copied to clipboard.", Duration = 2})
+    end})
+    actionsPanel:CreateButton({Name = "Copy Job ID", Callback = function()
+        setclipboard(game.JobId)
+        window:Notify({Title = "Copied", Text = "Job ID copied to clipboard.", Duration = 2})
+    end})
+
+    -- New Feature: Performance Monitoring Panel (Right Column, below Changelog)
+    local perfPanel = homeTab:CreatePanel({Column = "Right", Title = "Performance Monitoring"})
+
+    -- Labels for performance stats (will be updated in real-time)
+    local fpsLabel = perfPanel:CreateLabel("FPS: Calculating...")
+    local pingLabel = perfPanel:CreateLabel("Ping: Calculating...")
+    local memoryLabel = perfPanel:CreateLabel("Memory Usage: Calculating...")
+
+    -- Services for performance data
+    local runService = game:GetService("RunService")
+    local statsService = game:GetService("Stats")
+
+    -- Variables for FPS calculation
+    local lastTime = tick()
+    local frameCount = 0
+    local fps = 0
+
+    -- Update function for performance stats
+    local function updatePerformance()
+        -- Update FPS (approximate)
+        frameCount = frameCount + 1
+        local currentTime = tick()
+        if currentTime - lastTime >= 1 then
+            fps = frameCount / (currentTime - lastTime)
+            fpsLabel.Text = string.format("FPS: %.0f", fps)
+            frameCount = 0
+            lastTime = currentTime
+        end
+
+        -- Update Ping
+        local ping = statsService.Network.ServerStatsItem["Data Ping"]:GetValue()
+        pingLabel.Text = string.format("Ping: %.0f ms", ping)
+
+        -- Update Memory Usage
+        local memory = collectgarbage("count") / 1024  -- Convert KB to MB
+        memoryLabel.Text = string.format("Memory Usage: %.2f MB", memory)
+    end
+
+    -- Connect to Heartbeat for updates (every frame, but calculations are throttled)
+    local perfConnection = runService.Heartbeat:Connect(updatePerformance)
+
+    -- Disconnect when tab is destroyed to prevent memory leaks
+    content.AncestryChanged:Connect(function()
+        if not content:IsDescendantOf(game) then
+            perfConnection:Disconnect()
+        end
+    end)
 
     return homeTab
 end
