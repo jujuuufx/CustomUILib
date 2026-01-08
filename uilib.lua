@@ -7,6 +7,7 @@ local GuiService = game:GetService("GuiService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 local HttpService = game:GetService("HttpService")
+
 local function getInsetY()
     local insetY = 0
     pcall(function()
@@ -15,6 +16,7 @@ local function getInsetY()
     end)
     return insetY
 end
+
 local Theme = {
     Bg = Color3.fromRGB(14, 15, 18),
     Top = Color3.fromRGB(18, 19, 23),
@@ -33,6 +35,7 @@ local Theme = {
     NeutralButtonHover = Color3.fromRGB(100, 100, 100),
     CloseButtonHover = Color3.fromRGB(200, 50, 60),
 }
+
 local Themes = {
     Dark = Theme,
     Light = {
@@ -108,27 +111,30 @@ local Themes = {
         CloseButtonHover = Color3.fromRGB(200, 50, 60),
     },
 }
+
 local function tween(instance, properties, duration)
     duration = duration or 0.18
     local t = TweenService:Create(instance, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), properties)
     t:Play()
     return t
 end
+
 local function applyCorner(instance, radius)
     local c = Instance.new("UICorner")
     c.CornerRadius = UDim.new(0, radius)
     c.Parent = instance
     return c
 end
+
 local function applyStroke(instance, colorKey, transparency)
     local s = Instance.new("UIStroke")
     s.Thickness = 1
     s.Transparency = transparency or 0.55
-    s.Color = Theme[colorKey] -- Initial set
+    s.Color = Theme[colorKey]
     s.Parent = instance
     return s
 end
-local UserInputService = game:GetService("UserInputService")
+
 local function makeDraggable(frame, handle)
     local dragging = false
     local dragInput, mousePos, framePos
@@ -156,7 +162,7 @@ local function makeDraggable(frame, handle)
         end
     end)
 end
-print("draggable yep yep")
+
 local function truncateWithEllipsis(text, maxChars)
     text = tostring(text or "")
     maxChars = maxChars or 24
@@ -168,6 +174,7 @@ local function truncateWithEllipsis(text, maxChars)
     end
     return string.sub(text, 1, maxChars - 3) .. "..."
 end
+
 local function safeParentGui(gui)
     if syn and syn.protect_gui then
         pcall(function()
@@ -182,6 +189,7 @@ local function safeParentGui(gui)
     end
     gui.Parent = CoreGui
 end
+
 local function createRow(parent, height)
     local row = Instance.new("Frame")
     row.BackgroundTransparency = 1
@@ -190,6 +198,7 @@ local function createRow(parent, height)
     row.Parent = parent
     return row
 end
+
 local function createText(parent, text, size, bold, colorKey)
     local lbl = Instance.new("TextLabel")
     lbl.BackgroundTransparency = 1
@@ -203,6 +212,7 @@ local function createText(parent, text, size, bold, colorKey)
     lbl.Parent = parent
     return lbl
 end
+
 local function createSquareToggle(parent, default, callback)
     local btn = Instance.new("TextButton")
     btn.AutoButtonColor = false
@@ -215,11 +225,7 @@ local function createSquareToggle(parent, default, callback)
     applyStroke(btn, "StrokeSoft", 0.4)
     local state = default and true or false
     local function render()
-        if state then
-            btn.BackgroundColor3 = Theme.Accent
-        else
-            btn.BackgroundColor3 = Theme.ToggleOff
-        end
+        btn.BackgroundColor3 = state and Theme.Accent or Theme.ToggleOff
     end
     render()
     btn.MouseButton1Click:Connect(function()
@@ -228,7 +234,7 @@ local function createSquareToggle(parent, default, callback)
         pcall(callback, state)
     end)
     return {
-        SetValue = function(_, v)
+        SetValue = function(self, v)
             state = v and true or false
             render()
         end,
@@ -237,6 +243,7 @@ local function createSquareToggle(parent, default, callback)
         end,
     }
 end
+
 local function createDivider(parent)
     local div = Instance.new("Frame")
     div.BorderSizePixel = 0
@@ -247,111 +254,14 @@ local function createDivider(parent)
     div.Parent = parent
     return div
 end
-function Nova:CreateWindow(options)
-    options = options or {}
-    local titleText = options.Name or "Nova UI"
-    local subtitleText = options.Subtitle or ""
-    local footerText = options.Footer or subtitleText
-    local brandText = options.BrandText or "N"
-    local brandImage = options.BrandImage
-    local brandImageSize = options.BrandImageSize or 18
-    local forcedSize = options.Size
-    local enableGroups = options.Groups == true
-    local defaultToggleKey = options.ToggleKey or Enum.KeyCode.LeftAlt
-    local enableHome = options.Home ~= false
-    local homeOpts = typeof(options.Home) == "table" and options.Home or {}
-    local enableSettings = options.Settings ~= false
-    local enableConfig = options.Config ~= false
-    local function computeWindowSize()
-        if forcedSize and forcedSize.Width and forcedSize.Height then
-            return forcedSize.Width, forcedSize.Height
-        end
-        local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
-        local isTablet = UserInputService.TouchEnabled and UserInputService.KeyboardEnabled
-        local viewport = (Camera and Camera.ViewportSize) or Vector2.new(1280, 720)
-        local insetY = getInsetY()
-        if isMobile or isTablet then
-            local w = math.floor(viewport.X * 0.88)
-            local h = math.floor((viewport.Y - insetY) * 0.80)
-            return math.max(580, w), math.max(360, h)
-        end
-        return 860, 480
-    end
-    local screen = Instance.new("ScreenGui")
-    screen.Name = "Nova"
-    screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    screen.ResetOnSpawn = false
-    safeParentGui(screen)
-    -- Overlay layer (used by dropdowns to stay above everything)
-    local overlay = Instance.new("Frame")
-    overlay.Name = "Overlay"
-    overlay.BackgroundTransparency = 1
-    overlay.BorderSizePixel = 0
-    overlay.Size = UDim2.new(1, 0, 1, 0)
-    overlay.Position = UDim2.new(0, 0, 0, 0)
-    overlay.ZIndex = 10_000
-    overlay.Visible = true
-    overlay.Parent = screen
-    local main = Instance.new("Frame")
-    main.Name = "Main"
-    local startW, startH = computeWindowSize()
-    main.Size = UDim2.new(0, startW, 0, startH)
-    main.Position = UDim2.new(0.5, -startW / 2, 0.5, -startH / 2)
-    main.BackgroundColor3 = Theme.Bg
-    main.BorderSizePixel = 0
-    main.ClipsDescendants = true
-    main.Parent = screen
-    applyCorner(main, 12)
-    applyStroke(main, "Stroke", 0.6)
-    -- Add resize handle - Made bigger and more noticeable
-    local resizeHandle = Instance.new("Frame")
-    resizeHandle.Name = "ResizeHandle"
-    resizeHandle.BackgroundTransparency = 1
-    resizeHandle.Size = UDim2.new(0, 30, 0, 30)
-    resizeHandle.Position = UDim2.new(1, -30, 1, -30)
-    resizeHandle.Parent = main
-    -- Add grip visuals (five diagonal lines, thicker)
-    for i = 0, 4 do
-        local line = Instance.new("Frame")
-        line.BackgroundColor3 = Theme.Accent -- Changed to Accent for better visibility
-        line.BorderSizePixel = 0
-        line.Size = UDim2.new(0, 12 - i * 2, 0, 2) -- Thicker lines
-        line.Position = UDim2.new(1, -18 + i * 4, 1, -6 - i * 4)
-        line.Rotation = 45
-        line.Parent = resizeHandle
-    end
-    local resizing = false
-    local startSize
-    local startInputPos
-    resizeHandle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            resizing = true
-            startSize = main.Size
-            startInputPos = input.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    resizing = false
-                end
-            end)
-        end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - startInputPos
-            local newWidth = startSize.X.Offset + delta.X
-            local newHeight = startSize.Y.Offset + delta.Y
-            newWidth = math.max(300, newWidth) -- Minimum width
-            newHeight = math.max(200, newHeight) -- Minimum height
-            main.Size = UDim2.new(0, newWidth, 0, newHeight)
-        end
-    end)
-        -- Top bar
+
+local function createTopBar(parent)
     local top = Instance.new("Frame")
     top.Name = "TopBar"
     top.Size = UDim2.new(1, 0, 0, 56)
     top.BackgroundColor3 = Theme.Top
     top.BorderSizePixel = 0
-    top.Parent = main
+    top.Parent = parent
     applyCorner(top, 12)
     local topFix = Instance.new("Frame")
     topFix.Size = UDim2.new(1, 0, 0, 14)
@@ -366,14 +276,17 @@ function Nova:CreateWindow(options)
     topLine.BackgroundTransparency = 0.6
     topLine.BorderSizePixel = 0
     topLine.Parent = top
-    -- Small brand at left
+    return top
+end
+
+local function createBrandWrap(parent, brandText, brandImage, brandImageSize)
     local brandWrapWidth = brandImageSize + 22
     local brandWrap = Instance.new("Frame")
     brandWrap.BackgroundTransparency = 1
     brandWrap.BorderSizePixel = 0
     brandWrap.Size = UDim2.new(0, brandWrapWidth, 1, 0)
     brandWrap.Position = UDim2.new(0, 16, 0, 0)
-    brandWrap.Parent = top
+    brandWrap.Parent = parent
     local brand = Instance.new("TextLabel")
     brand.Name = "BrandText"
     brand.BackgroundTransparency = 1
@@ -397,6 +310,10 @@ function Nova:CreateWindow(options)
     if brandImg.Visible then
         brand.Visible = false
     end
+    return brandWrap, brand, brandImg
+end
+
+local function createTitleSubtitle(parent, titleText, subtitleText, brandWrapWidth)
     local title = Instance.new("TextLabel")
     title.BackgroundTransparency = 1
     title.Size = UDim2.new(0, 260, 0, 18)
@@ -406,23 +323,26 @@ function Nova:CreateWindow(options)
     title.TextSize = 15
     title.Font = Enum.Font.GothamBold
     title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = top
+    title.Parent = parent
     local subtitle = Instance.new("TextLabel")
     subtitle.BackgroundTransparency = 1
     subtitle.Size = UDim2.new(0, 260, 0, 16)
     subtitle.Position = UDim2.new(0, brandWrapWidth + 14, 0, 32)
-    subtitle.Text = "| " .. footerText
+    subtitle.Text = "| " .. subtitleText
     subtitle.TextColor3 = Theme.SubText
     subtitle.TextSize = 12
     subtitle.Font = Enum.Font.Gotham
     subtitle.TextXAlignment = Enum.TextXAlignment.Left
-    subtitle.Parent = top
-    -- Only 3 small buttons (minimize, full screen, close) with oldui.lua colors
+    subtitle.Parent = parent
+    return title, subtitle
+end
+
+local function createControls(parent)
     local controls = Instance.new("Frame")
     controls.BackgroundTransparency = 1
     controls.Size = UDim2.new(0, 66, 0, 16)
     controls.Position = UDim2.new(1, -80, 0, 20)
-    controls.Parent = top
+    controls.Parent = parent
     local controlsLayout = Instance.new("UIListLayout")
     controlsLayout.FillDirection = Enum.FillDirection.Horizontal
     controlsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
@@ -459,83 +379,17 @@ function Nova:CreateWindow(options)
     closeBtn.LayoutOrder = 3
     closeBtn.Parent = controls
     applyCorner(closeBtn, 12)
-    makeDraggable(main, top)
-    -- Minimize / FullScreen / Close behavior
-    local minimized = false
-    local isFullScreen = false
-    local savedSize = main.Size
-    local savedPos = main.Position
-    local function centerTo(w, h)
-        main.Size = UDim2.new(0, w, 0, h)
-        main.Position = UDim2.new(0.5, -w / 2, 0.5, -h / 2)
-    end
-    local function minimizeToggle()
-        minimized = not minimized
-        local w = main.Size.X.Offset
-        local h = main.Size.Y.Offset
-        if minimized then
-            tween(main, { Position = UDim2.new(0.5, -w / 2, 1.5, 0) }, 0.22)
-        else
-            tween(main, { Position = UDim2.new(0.5, -w / 2, 0.5, -h / 2) }, 0.22)
-        end
-    end
-    minimizeBtn.MouseButton1Click:Connect(minimizeToggle)
-    fullScreenBtn.MouseButton1Click:Connect(function()
-        isFullScreen = not isFullScreen
-        if isFullScreen then
-            savedSize = main.Size
-            savedPos = main.Position
-            local viewport = Camera.ViewportSize
-            local topLeft, bottomRight = GuiService:GetGuiInset()
-            main.Position = UDim2.new(0, topLeft.X, 0, topLeft.Y)
-            main.Size = UDim2.new(1, -topLeft.X - bottomRight.X, 1, -topLeft.Y - bottomRight.Y)
-        else
-            main.Size = savedSize
-            main.Position = savedPos
-        end
-    end)
-    closeBtn.MouseButton1Click:Connect(function()
-        main.Visible = false
-    end)
-    minimizeBtn.MouseEnter:Connect(function()
-        tween(minimizeBtn, { BackgroundColor3 = Theme.NeutralButtonHover }, 0.12)
-    end)
-    minimizeBtn.MouseLeave:Connect(function()
-        tween(minimizeBtn, { BackgroundColor3 = Theme.NeutralButton }, 0.12)
-    end)
-    fullScreenBtn.MouseEnter:Connect(function()
-        tween(fullScreenBtn, { BackgroundColor3 = Theme.NeutralButtonHover }, 0.12)
-    end)
-    fullScreenBtn.MouseLeave:Connect(function()
-        tween(fullScreenBtn, { BackgroundColor3 = Theme.NeutralButton }, 0.12)
-    end)
-    closeBtn.MouseEnter:Connect(function()
-        tween(closeBtn, { BackgroundColor3 = Theme.CloseButtonHover }, 0.12)
-    end)
-    closeBtn.MouseLeave:Connect(function()
-        tween(closeBtn, { BackgroundColor3 = Theme.NeutralButton }, 0.12)
-    end)
-    -- Responsive auto-size like oldui.lua (unless a fixed Size is provided)
-    if Camera and not forcedSize then
-        Camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
-            if minimized or isFullScreen then
-                return
-            end
-            local w, h = computeWindowSize()
-            tween(main, {
-                Size = UDim2.new(0, w, 0, h),
-                Position = UDim2.new(0.5, -w / 2, 0.5, -h / 2),
-            }, 0.22)
-        end)
-    end
-    -- Sidebar
+    return minimizeBtn, fullScreenBtn, closeBtn
+end
+
+local function createSidebar(parent)
     local sidebar = Instance.new("Frame")
     sidebar.Name = "Sidebar"
     sidebar.Size = UDim2.new(0, 200, 1, -56)
     sidebar.Position = UDim2.new(0, 0, 0, 56)
     sidebar.BackgroundColor3 = Theme.Side
     sidebar.BorderSizePixel = 0
-    sidebar.Parent = main
+    sidebar.Parent = parent
     applyStroke(sidebar, "StrokeSoft", 0.7)
     local nav = Instance.new("ScrollingFrame")
     nav.Name = "Nav"
@@ -558,7 +412,6 @@ function Nova:CreateWindow(options)
     navLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         nav.CanvasSize = UDim2.new(0, 0, 0, navLayout.AbsoluteContentSize.Y + 16)
     end)
-    -- User profile
     local profile = Instance.new("Frame")
     profile.Name = "Profile"
     profile.Size = UDim2.new(1, 0, 0, 72)
@@ -601,19 +454,195 @@ function Nova:CreateWindow(options)
     local username = createText(profile, truncateWithEllipsis((LocalPlayer and ("@" .. LocalPlayer.Name)) or "@user", 20), 9, false, "SubText")
     username.Size = UDim2.new(1, -60, 0, 14)
     username.Position = UDim2.new(0, 56, 0, 38)
-    -- Content area
+    return sidebar, nav
+end
+
+local function createContent(parent)
     local content = Instance.new("Frame")
     content.Name = "Content"
     content.BackgroundTransparency = 1
     content.BorderSizePixel = 0
     content.Size = UDim2.new(1, -200, 1, -56)
     content.Position = UDim2.new(0, 200, 0, 56)
-    content.Parent = main
+    content.Parent = parent
     local tabRoot = Instance.new("Frame")
     tabRoot.Name = "TabRoot"
     tabRoot.BackgroundTransparency = 1
     tabRoot.Size = UDim2.new(1, 0, 1, 0)
     tabRoot.Parent = content
+    return content, tabRoot
+end
+
+local function setupResizeHandle(parent)
+    local resizeHandle = Instance.new("Frame")
+    resizeHandle.Name = "ResizeHandle"
+    resizeHandle.BackgroundTransparency = 1
+    resizeHandle.Size = UDim2.new(0, 30, 0, 30)
+    resizeHandle.Position = UDim2.new(1, -30, 1, -30)
+    resizeHandle.Parent = parent
+    for i = 0, 4 do
+        local line = Instance.new("Frame")
+        line.BackgroundColor3 = Theme.Accent
+        line.BorderSizePixel = 0
+        line.Size = UDim2.new(0, 12 - i * 2, 0, 2)
+        line.Position = UDim2.new(1, -18 + i * 4, 1, -6 - i * 4)
+        line.Rotation = 45
+        line.Parent = resizeHandle
+    end
+    local resizing = false
+    local startSize, startInputPos
+    resizeHandle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            resizing = true
+            startSize = parent.Size
+            startInputPos = input.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    resizing = false
+                end
+            end)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - startInputPos
+            local newWidth = math.max(300, startSize.X.Offset + delta.X)
+            local newHeight = math.max(200, startSize.Y.Offset + delta.Y)
+            parent.Size = UDim2.new(0, newWidth, 0, newHeight)
+        end
+    end)
+end
+
+local function setupWindowBehaviors(main, minimizeBtn, fullScreenBtn, closeBtn, minimized, isFullScreen, savedSize, savedPos)
+    minimizeBtn.MouseButton1Click:Connect(function()
+        minimized = not minimized
+        local w = main.Size.X.Offset
+        local h = main.Size.Y.Offset
+        if minimized then
+            tween(main, { Position = UDim2.new(0.5, -w / 2, 1.5, 0) }, 0.22)
+        else
+            tween(main, { Position = UDim2.new(0.5, -w / 2, 0.5, -h / 2) }, 0.22)
+        end
+    end)
+    fullScreenBtn.MouseButton1Click:Connect(function()
+        isFullScreen = not isFullScreen
+        if isFullScreen then
+            savedSize = main.Size
+            savedPos = main.Position
+            local viewport = Camera.ViewportSize
+            local topLeft, bottomRight = GuiService:GetGuiInset()
+            main.Position = UDim2.new(0, topLeft.X, 0, topLeft.Y)
+            main.Size = UDim2.new(1, -topLeft.X - bottomRight.X, 1, -topLeft.Y - bottomRight.Y)
+        else
+            main.Size = savedSize
+            main.Position = savedPos
+        end
+    end)
+    closeBtn.MouseButton1Click:Connect(function()
+        main.Visible = false
+    end)
+    minimizeBtn.MouseEnter:Connect(function()
+        tween(minimizeBtn, { BackgroundColor3 = Theme.NeutralButtonHover }, 0.12)
+    end)
+    minimizeBtn.MouseLeave:Connect(function()
+        tween(minimizeBtn, { BackgroundColor3 = Theme.NeutralButton }, 0.12)
+    end)
+    fullScreenBtn.MouseEnter:Connect(function()
+        tween(fullScreenBtn, { BackgroundColor3 = Theme.NeutralButtonHover }, 0.12)
+    end)
+    fullScreenBtn.MouseLeave:Connect(function()
+        tween(fullScreenBtn, { BackgroundColor3 = Theme.NeutralButton }, 0.12)
+    end)
+    closeBtn.MouseEnter:Connect(function()
+        tween(closeBtn, { BackgroundColor3 = Theme.CloseButtonHover }, 0.12)
+    end)
+    closeBtn.MouseLeave:Connect(function()
+        tween(closeBtn, { BackgroundColor3 = Theme.NeutralButton }, 0.12)
+    end)
+    return minimized, isFullScreen, savedSize, savedPos
+end
+
+function Nova:CreateWindow(options)
+    options = options or {}
+    local titleText = options.Name or "Nova UI"
+    local subtitleText = options.Subtitle or ""
+    local footerText = options.Footer or subtitleText
+    local brandText = options.BrandText or "N"
+    local brandImage = options.BrandImage
+    local brandImageSize = options.BrandImageSize or 18
+    local forcedSize = options.Size
+    local enableGroups = options.Groups == true
+    local defaultToggleKey = options.ToggleKey or Enum.KeyCode.LeftAlt
+    local enableHome = options.Home ~= false
+    local homeOpts = typeof(options.Home) == "table" and options.Home or {}
+    local enableSettings = options.Settings ~= false
+    local enableConfig = options.Config ~= false
+    local function computeWindowSize()
+        if forcedSize and forcedSize.Width and forcedSize.Height then
+            return forcedSize.Width, forcedSize.Height
+        end
+        local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+        local isTablet = UserInputService.TouchEnabled and UserInputService.KeyboardEnabled
+        local viewport = (Camera and Camera.ViewportSize) or Vector2.new(1280, 720)
+        local insetY = getInsetY()
+        if isMobile or isTablet then
+            local w = math.floor(viewport.X * 0.88)
+            local h = math.floor((viewport.Y - insetY) * 0.80)
+            return math.max(580, w), math.max(360, h)
+        end
+        return 860, 480
+    end
+    local screen = Instance.new("ScreenGui")
+    screen.Name = "Nova"
+    screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screen.ResetOnSpawn = false
+    safeParentGui(screen)
+    local overlay = Instance.new("Frame")
+    overlay.Name = "Overlay"
+    overlay.BackgroundTransparency = 1
+    overlay.BorderSizePixel = 0
+    overlay.Size = UDim2.new(1, 0, 1, 0)
+    overlay.Position = UDim2.new(0, 0, 0, 0)
+    overlay.ZIndex = 10_000
+    overlay.Visible = true
+    overlay.Parent = screen
+    local startW, startH = computeWindowSize()
+    local main = Instance.new("Frame")
+    main.Name = "Main"
+    main.Size = UDim2.new(0, startW, 0, startH)
+    main.Position = UDim2.new(0.5, -startW / 2, 0.5, -startH / 2)
+    main.BackgroundColor3 = Theme.Bg
+    main.BorderSizePixel = 0
+    main.ClipsDescendants = true
+    main.Parent = screen
+    applyCorner(main, 12)
+    applyStroke(main, "Stroke", 0.6)
+    setupResizeHandle(main)
+    local top = createTopBar(main)
+    local brandWrap, brand, brandImg = createBrandWrap(top, brandText, brandImage, brandImageSize)
+    local brandWrapWidth = brandImageSize + 22
+    local title, subtitle = createTitleSubtitle(top, titleText, subtitleText, brandWrapWidth)
+    local minimizeBtn, fullScreenBtn, closeBtn = createControls(top)
+    makeDraggable(main, top)
+    local minimized = false
+    local isFullScreen = false
+    local savedSize = main.Size
+    local savedPos = main.Position
+    minimized, isFullScreen, savedSize, savedPos = setupWindowBehaviors(main, minimizeBtn, fullScreenBtn, closeBtn, minimized, isFullScreen, savedSize, savedPos)
+    if Camera and not forcedSize then
+        Camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+            if minimized or isFullScreen then
+                return
+            end
+            local w, h = computeWindowSize()
+            tween(main, {
+                Size = UDim2.new(0, w, 0, h),
+                Position = UDim2.new(0.5, -w / 2, 0.5, -h / 2),
+            }, 0.22)
+        end)
+    end
+    local sidebar, nav = createSidebar(main)
+    local content, tabRoot = createContent(main)
     local window = {}
     window._screen = screen
     window._main = main
@@ -697,9 +726,7 @@ function Nova:CreateWindow(options)
         end
     end
     function window:CreateTab(tabOptions)
-        local name
-        local icon
-        local group
+        local name, icon, group
         if type(tabOptions) == "string" then
             name = tabOptions
             icon = nil
@@ -765,7 +792,6 @@ function Nova:CreateWindow(options)
         pad.PaddingRight = UDim.new(0, 16)
         pad.PaddingBottom = UDim.new(0, 14)
         pad.Parent = tabContent
-        -- Two columns (like the screenshot)
         local leftCol = Instance.new("ScrollingFrame")
         leftCol.Name = "Left"
         leftCol.BackgroundTransparency = 1
@@ -803,7 +829,6 @@ function Nova:CreateWindow(options)
         attachLayout(leftCol)
         attachLayout(rightCol)
         local function applyColumnsForWidth(w)
-            -- On small screens, stack columns so everything fits.
             if w < 720 then
                 leftCol.Size = UDim2.new(1, 0, 0.52, -6)
                 leftCol.Position = UDim2.new(0, 0, 0, 0)
@@ -842,7 +867,6 @@ function Nova:CreateWindow(options)
         tab._left = leftCol
         tab._right = rightCol
         tab._applyColumns = applyColumnsForWidth
-        -- Panels
         local function makePanel(column, panelOptions)
             panelOptions = panelOptions or {}
             local pTitle = panelOptions.Title or "Panel"
@@ -893,7 +917,7 @@ function Nova:CreateWindow(options)
             end)
             local panel = {}
             panel.Frame = card
-            panel.Body = body -- Expose body for custom elements
+            panel.Body = body
             function panel:Divider()
                 local dWrap = createRow(body, 6)
                 createDivider(dWrap)
@@ -903,7 +927,7 @@ function Nova:CreateWindow(options)
                 opt = opt or {}
                 local row = createRow(body, 28)
                 local hasIcon = opt.Icon ~= nil
-                local x = 0
+                local x = hasIcon and 24 or 0
                 if hasIcon then
                     local ic = Instance.new("ImageLabel")
                     ic.BackgroundTransparency = 1
@@ -912,7 +936,6 @@ function Nova:CreateWindow(options)
                     ic.Image = opt.Icon
                     ic.ImageColor3 = Theme.SubText
                     ic.Parent = row
-                    x = 24
                 end
                 local lbl = createText(row, truncateWithEllipsis(opt.Name or "Toggle", 30), 12, false, "Text")
                 lbl.Size = UDim2.new(1, -40 - x, 1, 0)
@@ -1059,7 +1082,7 @@ function Nova:CreateWindow(options)
                     end
                 end)
                 local slider = {
-                    SetValue = function(_, v)
+                    SetValue = function(self, v)
                         setValue(v)
                     end,
                     GetValue = function()
@@ -1075,7 +1098,7 @@ function Nova:CreateWindow(options)
                 opt = opt or {}
                 local row = createRow(body, 30)
                 local hasIcon = opt.Icon ~= nil
-                local x = 0
+                local x = hasIcon and 24 or 0
                 if hasIcon then
                     local ic = Instance.new("ImageLabel")
                     ic.BackgroundTransparency = 1
@@ -1084,7 +1107,6 @@ function Nova:CreateWindow(options)
                     ic.Image = opt.Icon
                     ic.ImageColor3 = Theme.SubText
                     ic.Parent = row
-                    x = 24
                 end
                 local lbl = createText(row, opt.Name or "Keybind", 12, false, "Text")
                 lbl.Size = UDim2.new(1, -130 - x, 1, 0)
@@ -1140,7 +1162,7 @@ function Nova:CreateWindow(options)
                     end
                 end)
                 local keybind = {
-                    SetValue = function(_, v)
+                    SetValue = function(self, v)
                         current = v
                         if typeof(current) == "EnumItem" then
                             keyBtn.Text = current.Name
@@ -1168,7 +1190,6 @@ function Nova:CreateWindow(options)
                 local cb = opt.Callback or function() end
                 local labelText = opt.Name or opt.Label
                 local row = createRow(body, 32)
-                -- Optional label at left (rarely used; screenshot dropdown is label-less)
                 if labelText and labelText ~= "" then
                     local lbl = createText(row, labelText, 12, false, "Text")
                     lbl.Size = UDim2.new(0.5, 0, 1, 0)
@@ -1205,7 +1226,6 @@ function Nova:CreateWindow(options)
                 arrow.Font = Enum.Font.Gotham
                 arrow.TextXAlignment = Enum.TextXAlignment.Center
                 arrow.Parent = field
-                -- Render dropdown in overlay so it's always above everything and clickable
                 local catcher = Instance.new("TextButton")
                 catcher.Name = "DropdownCatcher"
                 catcher.AutoButtonColor = false
@@ -1247,15 +1267,11 @@ function Nova:CreateWindow(options)
                     local h = targetHeight or drop.Size.Y.Offset
                     local belowSpace = viewport.Y - (absPos.Y + absSize.Y)
                     openUp = belowSpace < (h + 18)
-                    local y = absPos.Y + absSize.Y + 6
-                    if openUp then
-                        y = absPos.Y - h - 6
-                    end
+                    local y = openUp and (absPos.Y - h - 6) or (absPos.Y + absSize.Y + 6)
                     drop.Position = UDim2.fromOffset(absPos.X, y)
                     drop.Size = UDim2.fromOffset(absSize.X, drop.Size.Y.Offset)
                 end
                 local function startTracking()
-                    -- Keep overlay aligned if window is dragged/resized while expanded
                     task.spawn(function()
                         while expanded and drop.Visible and drop.Parent do
                             placeDrop(drop.Size.Y.Offset)
@@ -1334,12 +1350,12 @@ function Nova:CreateWindow(options)
                     end
                 end)
                 local dropdown = {
-                    SetValue = function(_, v)
+                    SetValue = function(self, v)
                         current = v
                         valueLabel.Text = truncateWithEllipsis(tostring(current), 26)
                         rebuild(list)
                     end,
-                    UpdateList = function(_, newList)
+                    UpdateList = function(self, newList)
                         list = newList or {}
                         rebuild(list)
                     end,
@@ -1376,7 +1392,7 @@ function Nova:CreateWindow(options)
                     end
                 end)
                 local textbox = {
-                    SetValue = function(_, v)
+                    SetValue = function(self, v)
                         textBox.Text = tostring(v)
                     end,
                     GetValue = function()
@@ -1395,7 +1411,7 @@ function Nova:CreateWindow(options)
                 local cb = opt.Callback or function() end
                 local wrap = Instance.new("Frame")
                 wrap.BackgroundTransparency = 1
-                wrap.Size = UDim2.new(1, 0, 0, 200) -- Approximate height
+                wrap.Size = UDim2.new(1, 0, 0, 200)
                 wrap.Parent = body
                 local titleRow = createRow(wrap, 20)
                 local lbl = createText(titleRow, nameText, 12, false, "Text")
@@ -1407,16 +1423,14 @@ function Nova:CreateWindow(options)
                 preview.Parent = titleRow
                 applyCorner(preview, 6)
                 applyStroke(preview, "StrokeSoft", 0.4)
-                -- Color picker components
                 local pickerBody = Instance.new("Frame")
                 pickerBody.BackgroundTransparency = 1
                 pickerBody.Size = UDim2.new(1, 0, 0, 170)
                 pickerBody.Position = UDim2.new(0, 0, 0, 24)
                 pickerBody.Parent = wrap
-                -- SV square
                 local svSquare = Instance.new("Frame")
                 svSquare.Size = UDim2.new(1, -50, 0, 120)
-                svSquare.BackgroundColor3 = Color3.new(1, 0, 0) -- Initial hue
+                svSquare.BackgroundColor3 = Color3.new(1, 0, 0)
                 svSquare.Parent = pickerBody
                 applyCorner(svSquare, 6)
                 applyStroke(svSquare, "StrokeSoft", 0.4)
@@ -1436,7 +1450,6 @@ function Nova:CreateWindow(options)
                 svCursor.Parent = svSquare
                 applyCorner(svCursor, 4)
                 applyStroke(svCursor, "Stroke", 0)
-                -- Hue slider
                 local hueSlider = Instance.new("Frame")
                 hueSlider.Size = UDim2.new(0, 30, 0, 120)
                 hueSlider.Position = UDim2.new(1, -40, 0, 0)
@@ -1460,7 +1473,6 @@ function Nova:CreateWindow(options)
                 hueKnob.BackgroundColor3 = Color3.new(1, 1, 1)
                 hueKnob.Parent = hueSlider
                 applyStroke(hueKnob, "Stroke", 0)
-                -- RGB labels
                 local rgbRow = createRow(pickerBody, 30)
                 rgbRow.Position = UDim2.new(0, 0, 0, 130)
                 local rLabel = createText(rgbRow, "R: " .. math.floor(default.R * 255), 12, false, "Text")
@@ -1471,7 +1483,6 @@ function Nova:CreateWindow(options)
                 local bLabel = createText(rgbRow, "B: " .. math.floor(default.B * 255), 12, false, "Text")
                 bLabel.Size = UDim2.new(0.33, 0, 1, 0)
                 bLabel.Position = UDim2.new(0.66, 0, 0, 0)
-                -- Logic
                 local currentColor = default
                 local hue = 0
                 local sat = 1
@@ -1524,12 +1535,10 @@ function Nova:CreateWindow(options)
                     svCursor.Position = UDim2.new(x, 0, 1 - y, 0)
                     updateFromHSV()
                 end
-                -- Initial positions
                 hueKnob.Position = UDim2.new(0, 0, 1 - hue, 0)
                 svCursor.Position = UDim2.new(sat, 0, 1 - val, 0)
                 svSquare.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
                 updatePreview()
-                -- Interactions
                 local hueDragging = false
                 hueSlider.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -1565,7 +1574,7 @@ function Nova:CreateWindow(options)
                     end
                 end)
                 local colorPicker = {
-                    SetValue = function(_, color)
+                    SetValue = function(self, color)
                         currentColor = color
                         hue, sat, val = rgbToHsv(color)
                         updateFromHSV()
@@ -1579,14 +1588,12 @@ function Nova:CreateWindow(options)
                 end
                 return colorPicker
             end
-            -- Back-compat alias
             panel.CreateButton = panel.CreateButton
             return panel
         end
         function tab:CreatePanel(panelOptions)
             return makePanel(panelOptions and panelOptions.Column or "Left", panelOptions)
         end
-        -- Backward compatible: sections become left-column panels
         function tab:CreateSection(sectionName)
             return makePanel("Left", { Title = sectionName })
         end
@@ -1597,7 +1604,6 @@ function Nova:CreateWindow(options)
         end
         return tab
     end
-    -- Notifications (toasts)
     local notifyHost = Instance.new("Frame")
     notifyHost.Name = "Notifications"
     notifyHost.BackgroundTransparency = 1
@@ -1698,18 +1704,12 @@ function Nova:CreateWindow(options)
         fullScreenBtn.BackgroundColor3 = Theme.NeutralButton
         closeBtn.BackgroundColor3 = Theme.NeutralButton
         sidebar.BackgroundColor3 = Theme.Side
-        profile.BackgroundColor3 = Theme.Card
-        avatar.BackgroundColor3 = Theme.Card2
-        displayName.TextColor3 = Theme.Text
-        username.TextColor3 = Theme.SubText
-        -- Update tabs
-        for _, tab in ipairs(window._tabs) do
-            tab._button.BackgroundColor3 = (window._currentTab == tab) and Theme.Card2 or Theme.Side
-            tab._label.TextColor3 = (window._currentTab == tab) and Theme.Text or Theme.SubText
-            tab._iconTint.ImageColor3 = (window._currentTab == tab) and Theme.Accent or Theme.SubText
-            tab._indicator.BackgroundColor3 = Theme.Accent
+        for _, t in ipairs(window._tabs) do
+            t._button.BackgroundColor3 = (window._currentTab == t) and Theme.Card2 or Theme.Side
+            t._label.TextColor3 = (window._currentTab == t) and Theme.Text or Theme.SubText
+            t._iconTint.ImageColor3 = (window._currentTab == t) and Theme.Accent or Theme.SubText
+            t._indicator.BackgroundColor3 = Theme.Accent
         end
-        -- Additional updates can be added here for other elements
     end
     if enableHome then
         Nova:CreateHomeTab(window, homeOpts)
@@ -1753,7 +1753,7 @@ function Nova:CreateWindow(options)
                     configName:SetValue(selected)
                 end
             })
-            local refreshBtn = configPanel:CreateButton({Name = "Refresh List", Callback = function()
+            configPanel:CreateButton({Name = "Refresh List", Callback = function()
                 local folder = "NovaConfigs/" .. tostring(game.PlaceId)
                 local list = {}
                 if isfolder and isfolder(folder) then
@@ -1767,7 +1767,7 @@ function Nova:CreateWindow(options)
                 end
                 configsDropdown:UpdateList(list)
             end})
-            local saveBtn = configPanel:CreateButton({Name = "Save Config", Callback = function()
+            configPanel:CreateButton({Name = "Save Config", Callback = function()
                 local name = configName:GetValue()
                 local data = {}
                 for key, info in pairs(window._configElements) do
@@ -1783,7 +1783,7 @@ function Nova:CreateWindow(options)
                     window:Notify({Title = "Config", Text = "Saved config " .. name})
                 end
             end})
-            local loadBtn = configPanel:CreateButton({Name = "Load Config", Callback = function()
+            configPanel:CreateButton({Name = "Load Config", Callback = function()
                 local name = configName:GetValue()
                 local folder = "NovaConfigs/" .. tostring(game.PlaceId)
                 local file = folder .. "/" .. name .. ".json"
@@ -1801,7 +1801,7 @@ function Nova:CreateWindow(options)
                     window:Notify({Text = "Config " .. name .. " not found"})
                 end
             end})
-            local deleteBtn = configPanel:CreateButton({Name = "Delete Config", Callback = function()
+            configPanel:CreateButton({Name = "Delete Config", Callback = function()
                 local name = configName:GetValue()
                 local file = "NovaConfigs/" .. tostring(game.PlaceId) .. "/" .. name .. ".json"
                 if isfile and isfile(file) then
@@ -1811,7 +1811,6 @@ function Nova:CreateWindow(options)
             end})
         end
     end
-    -- Global keybind to open/close UI
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then
             return
@@ -1837,6 +1836,7 @@ function Nova:CreateWindow(options)
     end)
     return window
 end
+
 function Nova:CreateHomeTab(window, options)
     local icon = options.Icon or ""
     local backdrop = options.Backdrop or 0
@@ -1862,7 +1862,6 @@ function Nova:CreateHomeTab(window, options)
         end
     end
     local execStatus, execColor = getExecutorStatus()
-   
     local gameName = "Unknown"
     local gameIcon = "0"
     local creatorName = "Unknown"
@@ -1898,7 +1897,6 @@ function Nova:CreateHomeTab(window, options)
     bgImage.ScaleType = Enum.ScaleType.Fit
     bgImage.Parent = content
     bgImage.ZIndex = -2
-   
     local overlay = Instance.new("Frame")
     overlay.BackgroundColor3 = Color3.new(0, 0, 0)
     overlay.BackgroundTransparency = 0.7
@@ -1969,7 +1967,6 @@ function Nova:CreateHomeTab(window, options)
     gameIconImage.Parent = gameIconContainer
     applyCorner(gameIconImage, 10)
     applyStroke(gameIconImage, "StrokeSoft", 0.3)
-   
     local gameNameLabel = gamePanel:CreateLabel("Game Name: " .. gameName)
     local creatorLabel = gamePanel:CreateLabel("Creator: " .. creatorName .. " (ID: " .. tostring(creatorId) .. ")")
     local placeIdLabel = gamePanel:CreateLabel("Place ID: " .. tostring(game.PlaceId))
@@ -1977,9 +1974,7 @@ function Nova:CreateHomeTab(window, options)
     local jobIdLabel = gamePanel:CreateLabel("Job ID: " .. game.JobId)
     local playersLabel = gamePanel:CreateLabel("Players: " .. #playersService:GetPlayers() .. "/" .. playersService.MaxPlayers)
     gamePanel:CreateButton({Name = "Refresh Info", Callback = function()
-               
         playersLabel.Text = "Players: " .. #playersService:GetPlayers() .. "/" .. playersService.MaxPlayers
-   
         window:Notify({Title = "Info Refreshed", Text = "Game information has been updated.", Duration = 2})
     end})
     local changePanel = homeTab:CreatePanel({Column = "Right", Title = "Changelog"})
@@ -2027,11 +2022,9 @@ function Nova:CreateHomeTab(window, options)
         end
         local ping = statsService.Network.ServerStatsItem["Data Ping"]:GetValue()
         pingLabel.Text = string.format("Ping: %.0f ms", ping)
-       
-        local memory = collectgarbage("count") / 1024 -- Convert KB to MB
+        local memory = collectgarbage("count") / 1024
         memoryLabel.Text = string.format("Memory Usage: %.2f MB", memory)
     end
-   
     local perfConnection = runService.Heartbeat:Connect(updatePerformance)
     content.AncestryChanged:Connect(function()
         if not content:IsDescendantOf(game) then
