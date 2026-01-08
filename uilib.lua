@@ -1786,6 +1786,13 @@ end
 -- Parameters:
 --   window: The main UI window object
 --   options: Table containing customization options (Icon, Backdrop, DiscordInvite, SupportedExecutors, UnsupportedExecutors, Changelog)
+-- Function to create the Home tab in the Nova UI
+-- This tab displays user information, game details, supported executors, unsupported executors, and changelog
+-- Enhanced with additional user and game details, executor status indicators, a refresh button for dynamic info,
+-- quick actions, real-time performance monitoring with visual progress bars, gradients, bolder strokes, and animations for a cool, tough look
+-- Parameters:
+--   window: The main UI window object
+--   options: Table containing customization options (Icon, Backdrop, DiscordInvite, SupportedExecutors, UnsupportedExecutors, Changelog)
 function Nova:CreateHomeTab(window, options)
     -- Extract options with defaults
     local icon = options.Icon or ""  -- Default to empty if not provided
@@ -1805,12 +1812,12 @@ function Nova:CreateHomeTab(window, options)
     end
     local executor = executorName .. (executorVersion ~= "" and " " .. executorVersion or "")
 
-    -- Function to check executor status
+    -- Function to check executor status (with tougher colors: deep red for error, neon green for success)
     local function getExecutorStatus()
         if table.find(unsupported, executorName) then
-            return "Unsupported", "Error"  -- Color assuming "Error" is red
+            return "Unsupported", "Error"  -- Assuming "Error" maps to Color3.fromRGB(200, 0, 0)
         elseif table.find(supported, executorName) then
-            return "Supported", "Success"  -- Color assuming "Success" is green
+            return "Supported", "Success"  -- Assuming "Success" maps to Color3.fromRGB(0, 200, 0)
         else
             return "Unknown", "Text"
         end
@@ -1862,36 +1869,45 @@ function Nova:CreateHomeTab(window, options)
     bgImage.Parent = content
     bgImage.ZIndex = -2
 
-    -- Subtle dark overlay to improve text visibility
+    -- Subtle dark gradient overlay for a tougher, atmospheric look
     local overlay = Instance.new("Frame")
-    overlay.BackgroundColor3 = Color3.new(0, 0, 0)
-    overlay.BackgroundTransparency = 0.7
+    overlay.BackgroundTransparency = 0
     overlay.Size = UDim2.new(1, 0, 1, 0)
     overlay.Position = UDim2.new(0, 0, 0, 0)
     overlay.Parent = content
     overlay.ZIndex = -1
+    local overlayGrad = Instance.new("UIGradient")
+    overlayGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50))
+    })
+    overlayGrad.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.3),
+        NumberSequenceKeypoint.new(1, 0.8)
+    })
+    overlayGrad.Parent = overlay
 
     -- User Information Panel (Left Column)
     local userPanel = homeTab:CreatePanel({Column = "Left", Title = "User Information"})
 
-    -- Centered user avatar container
+    -- Centered user avatar container (larger for impact)
     local avatarContainer = Instance.new("Frame")
     avatarContainer.BackgroundTransparency = 1
-    avatarContainer.Size = UDim2.new(1, 0, 0, 120)
+    avatarContainer.Size = UDim2.new(1, 0, 0, 140)
     avatarContainer.Parent = userPanel.Body
 
     local avatarImage = Instance.new("ImageLabel")
-    avatarImage.Size = UDim2.new(0, 100, 0, 100)
-    avatarImage.Position = UDim2.new(0.5, -50, 0, 10)
+    avatarImage.Size = UDim2.new(0, 120, 0, 120)
+    avatarImage.Position = UDim2.new(0.5, -60, 0, 10)
     avatarImage.Image = userThumbnail
     avatarImage.BackgroundTransparency = 1
     avatarImage.ScaleType = Enum.ScaleType.Fit
     avatarImage.Parent = avatarContainer
-    applyCorner(avatarImage, 50)  -- Make it circular
-    applyStroke(avatarImage, "StrokeSoft", 0.3)  -- Soft stroke for visual appeal
+    applyCorner(avatarImage, 60)  -- Larger circular
+    applyStroke(avatarImage, "StrokeSoft", 0.5)  -- Thicker stroke for tough glow (assume red if customizable)
 
-    -- Welcome label and user details
-    userPanel:CreateLabel({Text = "Welcome, " .. (LocalPlayer.DisplayName or "Unknown") .. "!", Bold = true, Size = 14, Color = "Accent"})
+    -- Welcome label and user details (bolder, larger welcome)
+    userPanel:CreateLabel({Text = "Welcome, " .. (LocalPlayer.DisplayName or "Unknown") .. "!", Bold = true, Size = 18, Color = "Accent"})
     userPanel:CreateLabel("Display Name: " .. (LocalPlayer.DisplayName or "Unknown"))
     userPanel:CreateLabel("Username: " .. (LocalPlayer.Name or "Unknown"))
     userPanel:CreateLabel("User ID: " .. tostring(LocalPlayer.UserId or "Unknown"))
@@ -1939,21 +1955,21 @@ function Nova:CreateHomeTab(window, options)
     -- Game Information Panel (Right Column)
     local gamePanel = homeTab:CreatePanel({Column = "Right", Title = "Game Information"})
 
-    -- Centered game icon container
+    -- Centered game icon container (larger for impact)
     local gameIconContainer = Instance.new("Frame")
     gameIconContainer.BackgroundTransparency = 1
-    gameIconContainer.Size = UDim2.new(1, 0, 0, 120)
+    gameIconContainer.Size = UDim2.new(1, 0, 0, 140)
     gameIconContainer.Parent = gamePanel.Body
 
     local gameIconImage = Instance.new("ImageLabel")
-    gameIconImage.Size = UDim2.new(0, 100, 0, 100)
-    gameIconImage.Position = UDim2.new(0.5, -50, 0, 10)
+    gameIconImage.Size = UDim2.new(0, 120, 0, 120)
+    gameIconImage.Position = UDim2.new(0.5, -60, 0, 10)
     gameIconImage.Image = "rbxassetid://" .. gameIcon
     gameIconImage.BackgroundTransparency = 1
     gameIconImage.ScaleType = Enum.ScaleType.Fit
     gameIconImage.Parent = gameIconContainer
-    applyCorner(gameIconImage, 10)  -- Rounded corners
-    applyStroke(gameIconImage, "StrokeSoft", 0.3)
+    applyCorner(gameIconImage, 15)  -- Slightly larger rounded corners
+    applyStroke(gameIconImage, "StrokeSoft", 0.5)  -- Thicker for tough glow
 
     -- Game details (with references for refresh)
     local gameNameLabel = gamePanel:CreateLabel("Game Name: " .. gameName)
@@ -2001,13 +2017,75 @@ function Nova:CreateHomeTab(window, options)
         window:Notify({Title = "Copied", Text = "Job ID copied to clipboard.", Duration = 2})
     end})
 
-    -- New Feature: Performance Monitoring Panel (Right Column, below Changelog)
+    -- New Feature: Performance Monitoring Panel (Right Column, below Changelog) with visual progress bars
     local perfPanel = homeTab:CreatePanel({Column = "Right", Title = "Performance Monitoring"})
 
-    -- Labels for performance stats (will be updated in real-time)
-    local fpsLabel = perfPanel:CreateLabel("FPS: Calculating...")
-    local pingLabel = perfPanel:CreateLabel("Ping: Calculating...")
-    local memoryLabel = perfPanel:CreateLabel("Memory Usage: Calculating...")
+    -- Helper function to create a progress bar with gradient and animation
+    local TweenService = game:GetService("TweenService")
+    local function createProgressBar(parent, name, maxValue, colorGood, colorBad, invertColor)
+        local container = Instance.new("Frame")
+        container.BackgroundTransparency = 1
+        container.Size = UDim2.new(1, 0, 0, 40)
+        container.Parent = parent
+
+        local label = Instance.new("TextLabel")
+        label.BackgroundTransparency = 1
+        label.Size = UDim2.new(1, 0, 0, 20)
+        label.Text = name .. ": Calculating..."
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        label.TextSize = 14
+        label.Parent = container
+
+        local barBg = Instance.new("Frame")
+        barBg.Size = UDim2.new(1, 0, 0, 15)
+        barBg.Position = UDim2.new(0, 0, 0, 20)
+        barBg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)  -- Dark tough bg
+        local bgCorner = Instance.new("UICorner")
+        bgCorner.CornerRadius = UDim.new(0, 8)
+        bgCorner.Parent = barBg
+        applyStroke(barBg, "StrokeSoft", 0.2)
+        barBg.Parent = container
+
+        local barFill = Instance.new("Frame")
+        barFill.Size = UDim2.new(0, 0, 1, 0)
+        barFill.BackgroundColor3 = colorGood
+        local fillCorner = Instance.new("UICorner")
+        fillCorner.CornerRadius = UDim.new(0, 8)
+        fillCorner.Parent = barFill
+        barFill.Parent = barBg
+
+        -- Gradient for cool effect
+        local grad = Instance.new("UIGradient")
+        grad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 150, 150))
+        })
+        grad.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0),
+            NumberSequenceKeypoint.new(1, 0.5)
+        })
+        grad.Parent = barFill
+
+        return {
+            Update = function(value)
+                local frac = math.clamp(value / maxValue, 0, 1)
+                if invertColor then frac = 1 - frac end  -- For ping: low value = full bar/good
+                local targetColor = (frac > 0.5) and colorGood or colorBad
+                label.Text = name .. ": " .. string.format("%.0f", value)
+                barFill.BackgroundColor3 = targetColor
+
+                -- Animate fill
+                local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+                local tween = TweenService:Create(barFill, tweenInfo, {Size = UDim2.new(frac, 0, 1, 0)})
+                tween:Play()
+            end
+        }
+    end
+
+    -- Create progress bars
+    local fpsBar = createProgressBar(perfPanel.Body, "FPS", 120, Color3.fromRGB(0, 200, 0), Color3.fromRGB(200, 0, 0), false)
+    local pingBar = createProgressBar(perfPanel.Body, "Ping (ms)", 500, Color3.fromRGB(0, 200, 0), Color3.fromRGB(200, 0, 0), true)  -- Invert: low ping good
+    local memoryBar = createProgressBar(perfPanel.Body, "Memory (MB)", 1000, Color3.fromRGB(0, 200, 0), Color3.fromRGB(200, 0, 0), false)
 
     -- Services for performance data
     local runService = game:GetService("RunService")
@@ -2025,18 +2103,18 @@ function Nova:CreateHomeTab(window, options)
         local currentTime = tick()
         if currentTime - lastTime >= 1 then
             fps = frameCount / (currentTime - lastTime)
-            fpsLabel.Text = string.format("FPS: %.0f", fps)
+            fpsBar.Update(fps)
             frameCount = 0
             lastTime = currentTime
         end
 
         -- Update Ping
-        local ping = statsService.Network.ServerStatsItem["Data Ping"]:GetValue()
-        pingLabel.Text = string.format("Ping: %.0f ms", ping)
+        local ping = statsService.Network.ServerStatsItem["Data Ping"]:GetValue() or 0
+        pingBar.Update(ping)
 
         -- Update Memory Usage
         local memory = collectgarbage("count") / 1024  -- Convert KB to MB
-        memoryLabel.Text = string.format("Memory Usage: %.2f MB", memory)
+        memoryBar.Update(memory)
     end
 
     -- Connect to Heartbeat for updates (every frame, but calculations are throttled)
