@@ -1787,7 +1787,7 @@ function Nova:CreateHomeTab(window, options)
     local unsupported = options.UnsupportedExecutors or {}
     local changelog = options.Changelog or {}
 
-    local executorName = "Unknown"
+    local executorName = ""
     local executorVersion = ""
     if identifyexecutor then
         executorName, executorVersion = identifyexecutor()
