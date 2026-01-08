@@ -1779,19 +1779,29 @@ function Nova:CreateWindow(options)
     end)
     return window
 end
+-- Function to create the Home tab in the Nova UI
+-- This tab displays user information, game details, supported executors, and changelog
+-- Parameters:
+--   window: The main UI window object
+--   options: Table containing customization options (Icon, Backdrop, DiscordInvite, SupportedExecutors, UnsupportedExecutors, Changelog)
 function Nova:CreateHomeTab(window, options)
-    local icon = options.Icon
-    local backdrop = options.Backdrop
+    -- Extract options with defaults
+    local icon = options.Icon or ""  -- Default to empty if not provided
+    local backdrop = options.Backdrop or 0
     local discordInvite = options.DiscordInvite
     local supported = options.SupportedExecutors or {}
     local unsupported = options.UnsupportedExecutors or {}
     local changelog = options.Changelog or {}
+
+    -- Detect executor name
     local executor = "Unknown"
     if identifyexecutor then
         executor = identifyexecutor()
     elseif getexecutorname then
         executor = getexecutorname()
     end
+
+    -- Fetch game information with error handling
     local gameName = "Unknown"
     local gameIcon = "0"
     pcall(function()
@@ -1799,38 +1809,52 @@ function Nova:CreateHomeTab(window, options)
         gameName = productInfo.Name
         gameIcon = productInfo.IconImageAssetId
     end)
+
+    -- Get local player and thumbnail
     local playersService = game:GetService("Players")
     local LocalPlayer = playersService.LocalPlayer
     local thumbType = Enum.ThumbnailType.HeadShot
     local thumbSize = Enum.ThumbnailSize.Size180x180
-    local userThumbnail = ""
+    local userThumbnail = "rbxassetid://0"  -- Default fallback
     pcall(function()
         local content, isReady = playersService:GetUserThumbnailAsync(LocalPlayer.UserId, thumbType, thumbSize)
-        userThumbnail = content
+        if isReady then
+            userThumbnail = content
+        end
     end)
+
+    -- Create the Home tab
     local homeTab = window:CreateTab({Name = "Home", Icon = icon})
     local content = homeTab._content
-    -- Background image with improved scaling and transparency overlay for better visibility
+
+    -- Add background image with proper scaling and overlay for readability
     local bgImage = Instance.new("ImageLabel")
     bgImage.BackgroundTransparency = 1
     bgImage.Size = UDim2.new(1, 0, 1, 0)
-    bgImage.Image = "rbxassetid://" .. tostring(backdrop or 0)
-    bgImage.ScaleType = Enum.ScaleType.Fit
+    bgImage.Position = UDim2.new(0, 0, 0, 0)
+    bgImage.Image = "rbxassetid://" .. tostring(backdrop)
+    bgImage.ScaleType = Enum.ScaleType.Fit  -- Fit to maintain aspect ratio
     bgImage.Parent = content
-    bgImage.ZIndex = -2 -- Lower ZIndex to ensure it's behind everything
-    -- Add a subtle overlay for text readability
+    bgImage.ZIndex = -2
+
+    -- Subtle dark overlay to improve text visibility
     local overlay = Instance.new("Frame")
     overlay.BackgroundColor3 = Color3.new(0, 0, 0)
     overlay.BackgroundTransparency = 0.7
     overlay.Size = UDim2.new(1, 0, 1, 0)
+    overlay.Position = UDim2.new(0, 0, 0, 0)
     overlay.Parent = content
     overlay.ZIndex = -1
+
+    -- User Information Panel (Left Column)
     local userPanel = homeTab:CreatePanel({Column = "Left", Title = "User Information"})
-    -- Add user avatar for visual appeal, centered
+
+    -- Centered user avatar container
     local avatarContainer = Instance.new("Frame")
     avatarContainer.BackgroundTransparency = 1
     avatarContainer.Size = UDim2.new(1, 0, 0, 120)
     avatarContainer.Parent = userPanel.Body
+
     local avatarImage = Instance.new("ImageLabel")
     avatarImage.Size = UDim2.new(0, 100, 0, 100)
     avatarImage.Position = UDim2.new(0.5, -50, 0, 10)
@@ -1838,40 +1862,62 @@ function Nova:CreateHomeTab(window, options)
     avatarImage.BackgroundTransparency = 1
     avatarImage.ScaleType = Enum.ScaleType.Fit
     avatarImage.Parent = avatarContainer
-    applyCorner(avatarImage, 50) -- Circular avatar
-    applyStroke(avatarImage, "StrokeSoft", 0.3)
-    userPanel:CreateLabel({Text = "Welcome, " .. (LocalPlayer.DisplayName or "Unknown") .. "!", Bold = true, Size = 14, Color = "Accent"}) -- Styled welcome
+    applyCorner(avatarImage, 50)  -- Make it circular
+    applyStroke(avatarImage, "StrokeSoft", 0.3)  -- Soft stroke for visual appeal
+
+    -- Welcome label and user details
+    userPanel:CreateLabel({Text = "Welcome, " .. (LocalPlayer.DisplayName or "Unknown") .. "!", Bold = true, Size = 14, Color = "Accent"})
     userPanel:CreateLabel("Display Name: " .. (LocalPlayer.DisplayName or "Unknown"))
     userPanel:CreateLabel("Username: " .. (LocalPlayer.Name or "Unknown"))
-    userPanel:CreateLabel("User ID: " .. (LocalPlayer.UserId or "Unknown"))
+    userPanel:CreateLabel("User ID: " .. tostring(LocalPlayer.UserId or "Unknown"))
     userPanel:CreateLabel("Executor: " .. executor)
+
+    -- Info Panel (Left Column, below User Info)
     local infoPanel = homeTab:CreatePanel({Column = "Left", Title = "Info"})
+
+    -- Discord Join Button if invite is provided
     if discordInvite then
         infoPanel:CreateButton({Name = "Join Discord", Callback = function()
-            local invite = discordInvite
-            local clip = invite:match("http") and invite or "" .. invite
-            local success, err = pcall(setclipboard, clip)
+            -- Normalize invite: assume it's a code if no http, prepend discord.gg
+            local inviteUrl = discordInvite:match("^http") and discordInvite or "https://discord.gg/" .. discordInvite
+            local success, err = pcall(setclipboard, inviteUrl)
             if success then
-                window:Notify({Title = "Success", Text = "Copied Discord invite to clipboard", Duration = 3})
+                window:Notify({Title = "Success", Text = "Copied Discord invite to clipboard: " .. inviteUrl, Duration = 3})
             else
-                window:Notify({Title = "Error", Text = "Could not copy to clipboard. Invite: " .. invite, Duration = 5})
+                window:Notify({Title = "Error", Text = "Could not copy to clipboard. Invite URL: " .. inviteUrl, Duration = 5})
             end
         end})
     end
+
+    -- Supported Executors List
     infoPanel:CreateLabel({Text = "Supported Executors:", Bold = true})
-    for _, exec in ipairs(supported) do
-        infoPanel:CreateLabel("• " .. exec)
+    if #supported == 0 then
+        infoPanel:CreateLabel("• None specified")
+    else
+        for _, exec in ipairs(supported) do
+            infoPanel:CreateLabel("• " .. exec)
+        end
     end
+
+    -- Unsupported Executors List
     infoPanel:CreateLabel({Text = "Unsupported Executors:", Bold = true})
-    for _, exec in ipairs(unsupported) do
-        infoPanel:CreateLabel("• " .. exec)
+    if #unsupported == 0 then
+        infoPanel:CreateLabel("• None specified")
+    else
+        for _, exec in ipairs(unsupported) do
+            infoPanel:CreateLabel("• " .. exec)
+        end
     end
+
+    -- Game Information Panel (Right Column)
     local gamePanel = homeTab:CreatePanel({Column = "Right", Title = "Game Information"})
-    -- Add game icon for visual appeal, centered
+
+    -- Centered game icon container
     local gameIconContainer = Instance.new("Frame")
     gameIconContainer.BackgroundTransparency = 1
     gameIconContainer.Size = UDim2.new(1, 0, 0, 120)
     gameIconContainer.Parent = gamePanel.Body
+
     local gameIconImage = Instance.new("ImageLabel")
     gameIconImage.Size = UDim2.new(0, 100, 0, 100)
     gameIconImage.Position = UDim2.new(0.5, -50, 0, 10)
@@ -1879,18 +1925,30 @@ function Nova:CreateHomeTab(window, options)
     gameIconImage.BackgroundTransparency = 1
     gameIconImage.ScaleType = Enum.ScaleType.Fit
     gameIconImage.Parent = gameIconContainer
-    applyCorner(gameIconImage, 10) -- Rounded square
+    applyCorner(gameIconImage, 10)  -- Rounded corners
     applyStroke(gameIconImage, "StrokeSoft", 0.3)
+
+    -- Game details
     gamePanel:CreateLabel("Game Name: " .. gameName)
-    gamePanel:CreateLabel("Place ID: " .. game.PlaceId)
+    gamePanel:CreateLabel("Place ID: " .. tostring(game.PlaceId))
     gamePanel:CreateLabel("Job ID: " .. game.JobId)
     gamePanel:CreateLabel("Players: " .. #playersService:GetPlayers() .. "/" .. playersService.MaxPlayers)
+
+    -- Changelog Panel (Right Column, below Game Info)
     local changePanel = homeTab:CreatePanel({Column = "Right", Title = "Changelog"})
-    for _, entry in ipairs(changelog) do
-        changePanel:CreateLabel({Text = (entry.Title or "Update") .. " - " .. (entry.Date or "Unknown"), Bold = true})
-        changePanel:CreateLabel(entry.Description or "")
-        changePanel:Divider()
+
+    if #changelog == 0 then
+        changePanel:CreateLabel("No changelog entries available.")
+    else
+        for i, entry in ipairs(changelog) do
+            changePanel:CreateLabel({Text = (entry.Title or "Update " .. i) .. " - " .. (entry.Date or "Unknown"), Bold = true})
+            changePanel:CreateLabel(entry.Description or "No description provided.")
+            if i < #changelog then
+                changePanel:Divider()
+            end
+        end
     end
+
     return homeTab
 end
 return Nova
