@@ -1183,7 +1183,7 @@ function Nova:CreateWindow(options)
                 end
                 return keybind
             end
-            function panel:CreateDropdown(opt)
+           function panel:CreateDropdown(opt)
     opt = opt or {}
     local list = opt.List or {}
     local current = opt.Default or list[1] or "None"
